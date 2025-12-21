@@ -7,6 +7,27 @@ spring:
     name: picture-cloud
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/user-center
+    url: jdbc:mysql://118.25.157.191:3306/user-center
     username: root
     password: 123456
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: is_delete
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+knife4j:
+  enable: true
+  openapi:
+    title: 云图片接口文档
+    description: "云图片"
+    version: 1.0
+    group:
+      user-group:
+        group-name: user-group
+        api-rule: package
+        api-rule-resources:
+          - org.example.picturecloudbackend.controller
