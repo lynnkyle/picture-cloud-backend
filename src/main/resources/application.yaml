@@ -26,8 +26,7 @@ knife4j:
     description: "云图片"
     version: 1.0
     group:
-      user-group:
-        group-name: user-group
+      default:
         api-rule: package
         api-rule-resources:
           - org.example.picturecloudbackend.controller
