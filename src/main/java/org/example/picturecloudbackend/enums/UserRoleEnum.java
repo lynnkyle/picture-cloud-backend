@@ -1,12 +1,14 @@
 package org.example.picturecloudbackend.enums;
 
 import cn.hutool.core.util.ObjUtil;
+import lombok.Getter;
 
 /**
  * @author LinZeyuan
  * @description 用户角色枚举
  * @createDate 2025/12/23 17:53
  */
+@Getter
 public enum UserRoleEnum {
 
     USER("用户", "user"),
@@ -36,4 +38,5 @@ public enum UserRoleEnum {
         }
         return null;
     }
+
 }

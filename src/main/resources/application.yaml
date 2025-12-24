@@ -7,7 +7,7 @@ spring:
     name: picture-cloud
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://118.25.157.191:3306/user-center
+    url: jdbc:mysql://118.25.157.191:3306/picture-cloud?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
     username: root
     password: 123456
 mybatis-plus:

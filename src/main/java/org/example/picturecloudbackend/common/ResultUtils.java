@@ -12,12 +12,12 @@ public class ResultUtils {
         return new BaseResponse<>(code, data, message, description);
     }
 
-    public static <T> BaseResponse<T> success(ErrorCode errorCode) {
-        return new BaseResponse<>(errorCode.getCode(), null, errorCode.getMessage(), "");
+    public static <T> BaseResponse<T> success(ErrorCode errorCode, T data) {
+        return new BaseResponse<>(errorCode.getCode(), data, errorCode.getMessage(), "");
     }
 
-    public static <T> BaseResponse<T> success(ErrorCode errorCode, String description) {
-        return new BaseResponse<>(errorCode.getCode(), null, errorCode.getMessage(), description);
+    public static <T> BaseResponse<T> success(ErrorCode errorCode, T data, String description) {
+        return new BaseResponse<>(errorCode.getCode(), data, errorCode.getMessage(), description);
     }
 
     public static <T> BaseResponse<T> error(int code, String message) {

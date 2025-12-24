@@ -1,20 +1,79 @@
 package org.example.picturecloudbackend.service.impl;
 
+import java.util.Date;
+
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.example.picturecloudbackend.enums.UserRoleEnum;
+import org.example.picturecloudbackend.exception.ErrorCode;
+import org.example.picturecloudbackend.exception.ThrowUtils;
+import org.example.picturecloudbackend.mapper.UserMapper;
 import org.example.picturecloudbackend.model.entity.User;
 import org.example.picturecloudbackend.service.UserService;
-import org.example.picturecloudbackend.mapper.UserMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
-* @author LinZeyuan
-* @description 针对表【user(用户表)】的数据库操作Service实现
-* @createDate 2025-12-23 17:39:51
-*/
+ * @author LinZeyuan
+ * @description 针对表【user(用户表)】的数据库操作Service实现
+ * @createDate 2025-12-23 17:39:51
+ */
 @Service
-public class UserServiceImpl extends ServiceImpl<UserMapper, User>
-    implements UserService{
+public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
+    private static final String SALT = "MD5";
 
+    /**
+     * 用户注册
+     * @param userAccount
+     * @param userPassword
+     * @param checkPassword
+     * @return
+     */
+    @Override
+    public long userRegister(String userAccount, String userPassword, String checkPassword) {
+        // 1.校验参数
+        ThrowUtils.throwIf(StrUtil.hasBlank(userAccount, userPassword, checkPassword), ErrorCode.PARAMS_ERROR, "请求参数为空");
+        // 账号长度
+        ThrowUtils.throwIf(userAccount.length() < 4, ErrorCode.PARAMS_ERROR, "用户账号过短");
+        // 密码长度
+        ThrowUtils.throwIf(userPassword.length() < 8 || checkPassword.length() < 8, ErrorCode.PARAMS_ERROR, "用户密码过短");
+        // 账号格式
+        String validPattern = "^[a-zA-Z0-9\\u4e00-\\u9fa5]+$";
+        Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
+        ThrowUtils.throwIf(!matcher.matches(), ErrorCode.PARAMS_ERROR, "用户账号格式不正确");
+        // 校验用户密码
+        ThrowUtils.throwIf(!userPassword.equals(checkPassword), ErrorCode.PARAMS_ERROR, "两次输入的密码不一致");
+        // 2.检查用户账号是否和数据库中的账号一致
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_account", userAccount);
+        long count = this.count(queryWrapper);
+        ThrowUtils.throwIf(count > 0, ErrorCode.PARAMS_ERROR, "账号已存在");
+        // 3.密码加密
+        String encryptPassword = getEncryptPassword(userPassword);
+        // 4.插入数据
+        User user = new User();
+        user.setUserName("匿名用户");
+        user.setUserAccount(userAccount);
+        user.setUserPassword(encryptPassword);
+        user.setUserRole(UserRoleEnum.USER.getValue());
+        boolean save = this.save(user);
+        ThrowUtils.throwIf(!save, ErrorCode.SYSTEM_ERROR, "注册失败,数据库保存用户失败");
+        return user.getId();
+    }
+
+    /**
+     * 密码加密
+     * @param userPassword
+     * @return
+     */
+    @Override
+    public String getEncryptPassword(String userPassword) {
+        return DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
+    }
 }
 
 
