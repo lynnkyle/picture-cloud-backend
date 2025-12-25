@@ -6,7 +6,8 @@ package org.example.picturecloudbackend.exception;
 public enum ErrorCode {
     SUCCESS(20000, "请求成功"),
     PARAMS_ERROR(40000, "请求参数错误"),
-    ACCOUNT_EXIST(40100, "无权限"),
+    NOT_LOGIN_ERROR(40100, "用户未登录"),
+    NOT_AUTH_ERROR(40101, "无权限"),
     FORBIDDEN_ERROR(40300, "禁止访问"),
     NOT_FOUND_ERROR(40400, "请求数据不存在"),
     SYSTEM_ERROR(50000, "系统内部异常"),
