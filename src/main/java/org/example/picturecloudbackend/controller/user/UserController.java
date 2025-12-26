@@ -1,13 +1,11 @@
 package org.example.picturecloudbackend.controller.user;
 
-import org.example.picturecloudbackend.annotation.AuthCheck;
 import org.example.picturecloudbackend.common.BaseResponse;
 import org.example.picturecloudbackend.common.ResultUtils;
-import org.example.picturecloudbackend.constant.UserConstant;
 import org.example.picturecloudbackend.exception.ErrorCode;
 import org.example.picturecloudbackend.exception.ThrowUtils;
-import org.example.picturecloudbackend.model.dto.UserLoginRequest;
-import org.example.picturecloudbackend.model.dto.UserRegisterRequest;
+import org.example.picturecloudbackend.model.dto.user.UserLoginRequest;
+import org.example.picturecloudbackend.model.dto.user.UserRegisterRequest;
 import org.example.picturecloudbackend.model.entity.User;
 import org.example.picturecloudbackend.model.vo.LoginUserVO;
 import org.example.picturecloudbackend.service.UserService;

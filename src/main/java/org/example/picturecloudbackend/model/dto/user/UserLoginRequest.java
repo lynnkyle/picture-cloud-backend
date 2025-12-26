@@ -1,4 +1,4 @@
-package org.example.picturecloudbackend.model.dto;
+package org.example.picturecloudbackend.model.dto.user;
 
 import lombok.Data;
 
