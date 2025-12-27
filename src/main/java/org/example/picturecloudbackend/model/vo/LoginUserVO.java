@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -13,6 +14,7 @@ import java.util.Date;
  * @description 登录用户试图(脱敏)
  * @createDate 2025/12/23 17:40
  */
+@Data
 public class LoginUserVO implements Serializable {
 
     private static final long serialVersionUID = 2965134649152723353L;

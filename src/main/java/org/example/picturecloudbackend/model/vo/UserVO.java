@@ -1,8 +1,5 @@
-package org.example.picturecloudbackend.model.dto.user;
+package org.example.picturecloudbackend.model.vo;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -10,13 +7,18 @@ import java.util.Date;
 
 /**
  * @author LinZeyuan
- * @description 用户创建请求
- * @createDate 2025/12/26 15:09
+ * @description 用户视图
+ * @createDate 2025-12-27 20:42
  */
 @Data
-public class UserAddRequest implements Serializable {
+public class UserVO implements Serializable {
 
-    private static final long serialVersionUID = 6392684026581168685L;
+    private static final long serialVersionUID = 6795999944597312956L;
+    /**
+     * 用户id
+     */
+    private Long id;
+
     /**
      * 用户昵称
      */
@@ -41,4 +43,9 @@ public class UserAddRequest implements Serializable {
      * 用户角色(0-普通用户,1-管理员)
      */
     private String userRole;
+
+    /**
+     * 创建时间
+     */
+    private Date createTime;
 }

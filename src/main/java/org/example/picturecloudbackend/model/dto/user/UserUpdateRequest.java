@@ -1,6 +1,7 @@
 package org.example.picturecloudbackend.model.dto.user;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import lombok.Data;
@@ -10,13 +11,18 @@ import java.util.Date;
 
 /**
  * @author LinZeyuan
- * @description 用户创建请求
- * @createDate 2025/12/26 15:09
+ * @description 更新用户请求
+ * @createDate 2025-12-27 20:23
  */
-@Data
-public class UserAddRequest implements Serializable {
 
-    private static final long serialVersionUID = 6392684026581168685L;
+@Data
+public class UserUpdateRequest implements Serializable {
+    private static final long serialVersionUID = -5968270392977304584L;
+    /**
+     * 用户id
+     */
+    private Long id;
+
     /**
      * 用户昵称
      */
@@ -26,6 +32,11 @@ public class UserAddRequest implements Serializable {
      * 用户账号
      */
     private String userAccount;
+
+    /**
+     * 用户密码
+     */
+    private String userPassword;
 
     /**
      * 用户头像
@@ -41,4 +52,5 @@ public class UserAddRequest implements Serializable {
      * 用户角色(0-普通用户,1-管理员)
      */
     private String userRole;
+
 }

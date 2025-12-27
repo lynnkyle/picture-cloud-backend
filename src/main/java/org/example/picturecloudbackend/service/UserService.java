@@ -1,10 +1,14 @@
 package org.example.picturecloudbackend.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import org.example.picturecloudbackend.model.dto.user.UserQueryRequest;
 import org.example.picturecloudbackend.model.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.example.picturecloudbackend.model.vo.LoginUserVO;
+import org.example.picturecloudbackend.model.vo.UserVO;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * @author LinZeyuan
@@ -52,9 +56,30 @@ public interface UserService extends IService<User> {
     String getEncryptPassword(String userPassword);
 
     /**
-     * 获取用户脱敏信息
+     * 获取登录用户脱敏信息
      * @param userFromDb
      * @return
      */
     LoginUserVO getLoginUserVO(User userFromDb);
+
+    /**
+     * 获取用户脱敏信息
+     * @param userFromDb
+     * @return
+     */
+    UserVO getUserVO(User userFromDb);
+
+    /**
+     * 获取用户脱敏信息列表
+     * @param userFromDbList
+     * @return
+     */
+    List<UserVO> getUserVOList(List<User> userFromDbList);
+
+    /**
+     * 获取查询条件
+     * @param userQueryRequest
+     * @return
+     */
+    QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest);
 }

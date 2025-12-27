@@ -1,9 +1,11 @@
 package org.example.picturecloudbackend.common;
 
+import lombok.Data;
 import org.example.picturecloudbackend.exception.ErrorCode;
 
 import java.io.Serializable;
 
+@Data
 public class BaseResponse<T> implements Serializable {
     public int code;
     public T data;
