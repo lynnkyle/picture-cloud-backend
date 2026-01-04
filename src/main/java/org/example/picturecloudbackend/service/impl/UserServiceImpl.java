@@ -21,7 +21,6 @@ import org.springframework.util.DigestUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -149,7 +148,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public LoginUserVO getLoginUserVO(User userFromDb) {
-        if (userFromDb != null) {
+        if (userFromDb == null) {
             return null;
         }
         LoginUserVO loginUserVO = new LoginUserVO();

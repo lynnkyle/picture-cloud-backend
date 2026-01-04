@@ -114,7 +114,7 @@ public class UserController {
 
     @PostMapping("/update")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Long> addUser(@RequestBody UserUpdateRequest userUpdateRequest) {
+    public BaseResponse<Long> updateUser(@RequestBody UserUpdateRequest userUpdateRequest) {
         ThrowUtils.throwIf(userUpdateRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         User user = new User();
         BeanUtil.copyProperties(userUpdateRequest, user);
