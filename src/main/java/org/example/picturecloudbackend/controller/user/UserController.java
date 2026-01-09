@@ -101,7 +101,7 @@ public class UserController {
         return ResultUtils.success(userVO, "成功获取用户");
     }
 
-    @GetMapping("/delete")
+    @PostMapping("/delete")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> deleteUser(@RequestBody DeleteRequest deleteRequest) {
         ThrowUtils.throwIf(deleteRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");

@@ -5,6 +5,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.example.picturecloudbackend.constant.UserConstant;
 import org.example.picturecloudbackend.enums.UserRoleEnum;
@@ -22,6 +23,7 @@ import org.springframework.util.DigestUtils;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -36,6 +38,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     /**
      * 用户注册
+     *
      * @param userAccount
      * @param userPassword
      * @param checkPassword
@@ -75,6 +78,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     /**
      * 用户登录
+     *
      * @param userAccount
      * @param userPassword
      * @return
@@ -106,6 +110,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     /**
      * 获取当前登录用户
+     *
      * @param req
      * @return
      */
@@ -133,6 +138,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     /**
      * 密码加密
+     *
      * @param userPassword
      * @return
      */
@@ -143,6 +149,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     /**
      * 获取登录用户脱敏信息
+     *
      * @param userFromDb
      * @return
      */
@@ -158,6 +165,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     /**
      * 获取用户脱敏信息
+     *
      * @param userFromDb
      * @return
      */
@@ -173,7 +181,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public List<UserVO> getUserVOList(List<User> userFromDbList) {
-        if(CollectionUtil.isEmpty(userFromDbList)){
+        if (CollectionUtil.isEmpty(userFromDbList)) {
             return new ArrayList<>();
         }
         return userFromDbList.stream().map(this::getUserVO).collect(Collectors.toList());
@@ -181,7 +189,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest) {
-        ThrowUtils.throwIf(userQueryRequest == null, ErrorCode.PARAMS_ERROR,"请求参数为空");
+        ThrowUtils.throwIf(userQueryRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         Long id = userQueryRequest.getId();
         String userName = userQueryRequest.getUserName();
         String userAccount = userQueryRequest.getUserAccount();
@@ -195,7 +203,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         queryWrapper.like(StrUtil.isNotBlank(userName), "user_name", userName);
         queryWrapper.like(StrUtil.isNotBlank(userAccount), "user_account", userAccount);
         queryWrapper.like(StrUtil.isNotBlank(userProfile), "user_profile", userProfile);
-        queryWrapper.orderBy(StrUtil.isNotEmpty(sortField), sortOrder.equals("ascend"), sortField);
+        Optional<String> optionalField = Optional.ofNullable(sortField).map(StringUtils::camelToUnderline);
+        queryWrapper.orderBy(StrUtil.isNotEmpty(optionalField.get()), sortOrder.equals("ascend"), optionalField.get());
         return queryWrapper;
     }
 }
