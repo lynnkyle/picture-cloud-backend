@@ -22,6 +22,11 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
+/**
+ * @author LinZeyuan
+ * @description 用户控制器
+ * @createDate 2026/1/13 12:00
+ */
 @RequestMapping("/user")
 @RestController
 public class UserController {
@@ -74,6 +79,7 @@ public class UserController {
 
     /**
      * 根据id获取用户(仅管理员)
+     *
      * @param id
      * @return
      */
@@ -88,6 +94,7 @@ public class UserController {
 
     /**
      * 根据id获取用户包装类
+     *
      * @param id
      * @return
      */
