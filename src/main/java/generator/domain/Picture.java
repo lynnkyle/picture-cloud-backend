@@ -1,6 +1,9 @@
-package org.example.picturecloudbackend.model.entity;
+package generator.domain;
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -17,7 +20,7 @@ public class Picture implements Serializable {
     /**
      * 图片id
      */
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     /**
@@ -93,12 +96,11 @@ public class Picture implements Serializable {
     /**
      * 审核时间
      */
-    private Date reviewTime;
+    private Date ReviewTime;
 
     /**
      * 逻辑删除(1-删除)
      */
-    @TableLogic
     private Integer isDelete;
 
     /**

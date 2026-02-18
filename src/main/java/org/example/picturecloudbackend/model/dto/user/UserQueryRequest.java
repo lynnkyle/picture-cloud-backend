@@ -40,4 +40,9 @@ public class UserQueryRequest extends PageRequest implements Serializable {
      */
     private String userRole;
 
+    /**
+     * 搜索词(同时搜索名称，简介等)
+     */
+    private String searchText;
+    
 }

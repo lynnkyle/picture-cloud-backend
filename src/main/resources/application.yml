@@ -2,11 +2,16 @@ server:
   port: 8082
   servlet:
     context-path: /api
+    session:
+      timeout: 1d
 spring:
   profiles:
     active: local
   application:
     name: picture-cloud
+  servlet:
+    multipart:
+      max-file-size: 5MB
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true

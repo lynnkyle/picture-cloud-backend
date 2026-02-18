@@ -1,9 +1,5 @@
-package org.example.picturecloudbackend.model.vo;
+package org.example.picturecloudbackend.model.vo.user;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -11,13 +7,13 @@ import java.util.Date;
 
 /**
  * @author LinZeyuan
- * @description 登录用户试图(脱敏)
- * @createDate 2025/12/23 17:40
+ * @description 用户视图
+ * @createDate 2025-12-27 20:42
  */
 @Data
-public class LoginUserVO implements Serializable {
+public class UserVO implements Serializable {
 
-    private static final long serialVersionUID = 2965134649152723353L;
+    private static final long serialVersionUID = 6795999944597312956L;
     /**
      * 用户id
      */
@@ -47,11 +43,6 @@ public class LoginUserVO implements Serializable {
      * 用户角色(0-普通用户,1-管理员)
      */
     private String userRole;
-
-    /**
-     * 编辑时间
-     */
-    private Date editTime;
 
     /**
      * 创建时间

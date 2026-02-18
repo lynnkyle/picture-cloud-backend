@@ -38,5 +38,4 @@ public enum UserRoleEnum {
         }
         return null;
     }
-
 }

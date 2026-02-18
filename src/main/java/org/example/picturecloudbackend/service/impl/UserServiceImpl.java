@@ -14,8 +14,8 @@ import org.example.picturecloudbackend.exception.ThrowUtils;
 import org.example.picturecloudbackend.mapper.UserMapper;
 import org.example.picturecloudbackend.model.dto.user.UserQueryRequest;
 import org.example.picturecloudbackend.model.entity.User;
-import org.example.picturecloudbackend.model.vo.LoginUserVO;
-import org.example.picturecloudbackend.model.vo.UserVO;
+import org.example.picturecloudbackend.model.vo.user.LoginUserVO;
+import org.example.picturecloudbackend.model.vo.user.UserVO;
 import org.example.picturecloudbackend.service.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -23,6 +23,7 @@ import org.springframework.util.DigestUtils;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -72,7 +73,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setUserPassword(encryptPassword);
         user.setUserRole(UserRoleEnum.USER.getValue());
         boolean save = this.save(user);
-        ThrowUtils.throwIf(!save, ErrorCode.SYSTEM_ERROR, "注册失败,数据库保存用户失败");
+        ThrowUtils.throwIf(!save, ErrorCode.OPERATION_ERROR, "数据库保存用户失败");
         return user.getId();
     }
 
@@ -187,25 +188,48 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return userFromDbList.stream().map(this::getUserVO).collect(Collectors.toList());
     }
 
+    /**
+     * 获取查询用户
+     *
+     * @param userQueryRequest
+     * @return
+     */
     @Override
     public QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest) {
-        ThrowUtils.throwIf(userQueryRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        if (userQueryRequest == null) {
+            return queryWrapper;
+        }
         Long id = userQueryRequest.getId();
         String userName = userQueryRequest.getUserName();
         String userAccount = userQueryRequest.getUserAccount();
         String userProfile = userQueryRequest.getUserProfile();
         String userRole = userQueryRequest.getUserRole();
+        String searchText = userQueryRequest.getSearchText();
         String sortField = userQueryRequest.getSortField();
         String sortOrder = userQueryRequest.getSortOrder();
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        if (StringUtils.isNotBlank(searchText)) {
+            queryWrapper.and(qw -> qw.like("user_name", searchText).or().like("user_profile", searchText));
+        }
         queryWrapper.eq(ObjUtil.isNotEmpty(id), "id", id);
         queryWrapper.eq(StrUtil.isNotBlank(userRole), "user_role", userRole);
         queryWrapper.like(StrUtil.isNotBlank(userName), "user_name", userName);
         queryWrapper.like(StrUtil.isNotBlank(userAccount), "user_account", userAccount);
         queryWrapper.like(StrUtil.isNotBlank(userProfile), "user_profile", userProfile);
         Optional<String> optionalField = Optional.ofNullable(sortField).map(StringUtils::camelToUnderline);
-        queryWrapper.orderBy(StrUtil.isNotEmpty(optionalField.get()), sortOrder.equals("ascend"), optionalField.get());
+        queryWrapper.orderBy(StrUtil.isNotBlank(optionalField.get()), sortOrder.equals("ascend"), optionalField.get());
         return queryWrapper;
+    }
+
+    /**
+     * 判断用户是否是管理员
+     *
+     * @param user
+     * @return
+     */
+    @Override
+    public boolean isAdmin(User user) {
+        return user != null && Objects.equals(user.getUserRole(), UserRoleEnum.ADMIN.getValue());
     }
 }
 

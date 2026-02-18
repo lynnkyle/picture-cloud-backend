@@ -1,34 +1,26 @@
-package org.example.picturecloudbackend.model.entity;
+package org.example.picturecloudbackend.model.dto.picture;
 
-import com.baomidou.mybatisplus.annotation.*;
+import lombok.Data;
+import org.example.picturecloudbackend.common.PageRequest;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
-import lombok.Data;
-
-/**
- * 图片表
- * @TableName picture
- */
-@TableName(value = "picture")
 @Data
-public class Picture implements Serializable {
+public class PictureQueryRequest extends PageRequest implements Serializable {
+
+    private static final long serialVersionUID = -6859236916420254859L;
+
     /**
      * 图片id
      */
-    @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
     /**
      * 图片名称
      */
     private String picName;
-
-    /**
-     * 图片url
-     */
-    private String picUrl;
 
     /**
      * 图片简介
@@ -43,7 +35,7 @@ public class Picture implements Serializable {
     /**
      * 图片标签（JSON 数组）
      */
-    private String picTags;
+    private List<String> picTags;
 
     /**
      * 图片体积
@@ -76,6 +68,11 @@ public class Picture implements Serializable {
     private Long userId;
 
     /**
+     * 搜索词(同时搜索名称，简介等)
+     */
+    private String searchText;
+
+    /**
      * 审核状态:0-待审核, 1-通过, 2-拒绝
      */
     private Integer reviewStatus;
@@ -93,29 +90,6 @@ public class Picture implements Serializable {
     /**
      * 审核时间
      */
-    private Date reviewTime;
+    private Date ReviewTime;
 
-    /**
-     * 逻辑删除(1-删除)
-     */
-    @TableLogic
-    private Integer isDelete;
-
-    /**
-     * 编辑时间
-     */
-    private Date editTime;
-
-    /**
-     * 创建时间
-     */
-    private Date createTime;
-
-    /**
-     * 更新时间
-     */
-    private Date updateTime;
-
-    @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
 }

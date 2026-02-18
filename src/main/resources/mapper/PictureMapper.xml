@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="org.example.picturecloudbackend.mapper.PictureMapper">
+<mapper namespace="generator.mapper.PictureMapper">
 
-    <resultMap id="BaseResultMap" type="org.example.picturecloudbackend.model.entity.Picture">
+    <resultMap id="BaseResultMap" type="generator.domain.Picture">
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="picName" column="pic_name" jdbcType="VARCHAR"/>
             <result property="picUrl" column="pic_url" jdbcType="VARCHAR"/>
@@ -21,6 +21,10 @@
             <result property="editTime" column="edit_time" jdbcType="TIMESTAMP"/>
             <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
             <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+            <result property="reviewStatus" column="review_status" jdbcType="INTEGER"/>
+            <result property="reviewMessage" column="review_message" jdbcType="VARCHAR"/>
+            <result property="reviewerId" column="reviewer_id" jdbcType="BIGINT"/>
+            <result property="reviewTime" column="review_time" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -29,6 +33,7 @@
         pic_size,pic_width,pic_height,
         pic_scale,pic_format,user_id,
         is_delete,edit_time,create_time,
-        update_time
+        update_time,review_status,review_message,
+        reviewer_id,reviewer_time
     </sql>
 </mapper>

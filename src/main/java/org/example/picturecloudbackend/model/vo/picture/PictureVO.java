@@ -1,12 +1,10 @@
-package org.example.picturecloudbackend.model.vo;
+package org.example.picturecloudbackend.model.vo.picture;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import lombok.Data;
 import org.example.picturecloudbackend.model.entity.Picture;
+import org.example.picturecloudbackend.model.vo.user.UserVO;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -73,6 +71,11 @@ public class PictureVO implements Serializable {
     /**
      * 创建用户id
      */
+    private Long userId;
+
+    /**
+     * 创建用户id
+     */
     private UserVO user;
 
     /**
@@ -116,7 +119,7 @@ public class PictureVO implements Serializable {
         }
         PictureVO pictureVO = new PictureVO();
         BeanUtil.copyProperties(picture, pictureVO);
-        pictureVO.setPicTags(JSONUtil.toList(picture.getPicTags(),String.class));
+        pictureVO.setPicTags(JSONUtil.toList(picture.getPicTags(), String.class));
         return pictureVO;
     }
 }

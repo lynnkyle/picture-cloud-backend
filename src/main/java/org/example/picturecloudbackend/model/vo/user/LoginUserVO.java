@@ -1,4 +1,4 @@
-package org.example.picturecloudbackend.model.vo;
+package org.example.picturecloudbackend.model.vo.user;
 
 import lombok.Data;
 
@@ -7,13 +7,13 @@ import java.util.Date;
 
 /**
  * @author LinZeyuan
- * @description 用户视图
- * @createDate 2025-12-27 20:42
+ * @description 登录用户试图(脱敏)
+ * @createDate 2025/12/23 17:40
  */
 @Data
-public class UserVO implements Serializable {
+public class LoginUserVO implements Serializable {
 
-    private static final long serialVersionUID = 6795999944597312956L;
+    private static final long serialVersionUID = 2965134649152723353L;
     /**
      * 用户id
      */
@@ -43,6 +43,11 @@ public class UserVO implements Serializable {
      * 用户角色(0-普通用户,1-管理员)
      */
     private String userRole;
+
+    /**
+     * 编辑时间
+     */
+    private Date editTime;
 
     /**
      * 创建时间

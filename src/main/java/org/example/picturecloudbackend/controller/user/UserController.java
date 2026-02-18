@@ -13,8 +13,8 @@ import org.example.picturecloudbackend.exception.ErrorCode;
 import org.example.picturecloudbackend.exception.ThrowUtils;
 import org.example.picturecloudbackend.model.dto.user.*;
 import org.example.picturecloudbackend.model.entity.User;
-import org.example.picturecloudbackend.model.vo.LoginUserVO;
-import org.example.picturecloudbackend.model.vo.UserVO;
+import org.example.picturecloudbackend.model.vo.user.LoginUserVO;
+import org.example.picturecloudbackend.model.vo.user.UserVO;
 import org.example.picturecloudbackend.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
@@ -86,7 +86,7 @@ public class UserController {
     @GetMapping("/get")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<User> getUserById(@RequestParam Long id) {
-        ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
+        ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR, "请求用户id为空");
         User user = userService.getById(id);
         ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR, "用户不存在");
         return ResultUtils.success(user, "成功获取用户");
@@ -113,7 +113,7 @@ public class UserController {
     public BaseResponse<Boolean> deleteUser(@RequestBody DeleteRequest deleteRequest) {
         ThrowUtils.throwIf(deleteRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         Long id = deleteRequest.getId();
-        ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
+        ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR, "请求用户id为空");
         boolean res = userService.removeById(id);
         ThrowUtils.throwIf(!res, ErrorCode.OPERATION_ERROR, "数据库删除用户失败");
         return ResultUtils.success(res, "成功获取用户");

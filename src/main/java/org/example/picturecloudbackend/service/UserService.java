@@ -4,8 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.example.picturecloudbackend.model.dto.user.UserQueryRequest;
 import org.example.picturecloudbackend.model.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
-import org.example.picturecloudbackend.model.vo.LoginUserVO;
-import org.example.picturecloudbackend.model.vo.UserVO;
+import org.example.picturecloudbackend.model.vo.user.LoginUserVO;
+import org.example.picturecloudbackend.model.vo.user.UserVO;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -77,9 +77,16 @@ public interface UserService extends IService<User> {
     List<UserVO> getUserVOList(List<User> userFromDbList);
 
     /**
-     * 获取查询条件
+     * 获取查询用户
      * @param userQueryRequest
      * @return
      */
     QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest);
+
+    /**
+     * 判断用户是否为管理员
+     * @param user
+     * @return
+     */
+    boolean isAdmin(User user);
 }
