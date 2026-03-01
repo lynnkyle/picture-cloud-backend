@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.example.picturecloudbackend.model.dto.picture.PictureQueryRequest;
 import org.example.picturecloudbackend.model.dto.picture.PictureReviewerRequest;
+import org.example.picturecloudbackend.model.dto.picture.PictureUploadByBatchRequest;
 import org.example.picturecloudbackend.model.dto.picture.PictureUploadRequest;
 import org.example.picturecloudbackend.model.entity.Picture;
 import org.example.picturecloudbackend.model.entity.User;
@@ -73,4 +74,13 @@ public interface PictureService extends IService<Picture> {
      * @param loginUser
      */
     void fillReviewParams(Picture picture, User loginUser);
+
+    /**
+     * 批量上传图片(返回批量上传成功的图片数量)
+     * @param pictureUploadByBatchRequest
+     * @param loginUser
+     * @return
+     */
+    Integer uploadPictureByBatch(PictureUploadByBatchRequest pictureUploadByBatchRequest, User loginUser);
 }
+

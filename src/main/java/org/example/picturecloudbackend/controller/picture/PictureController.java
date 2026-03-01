@@ -9,6 +9,7 @@ import org.example.picturecloudbackend.annotation.AuthCheck;
 import org.example.picturecloudbackend.common.BaseResponse;
 import org.example.picturecloudbackend.common.DeleteRequest;
 import org.example.picturecloudbackend.common.ResultUtils;
+import org.example.picturecloudbackend.constant.CacheConstant;
 import org.example.picturecloudbackend.constant.UserConstant;
 import org.example.picturecloudbackend.enums.PictureReviewStatusEnum;
 import org.example.picturecloudbackend.exception.BusinessException;
@@ -21,6 +22,8 @@ import org.example.picturecloudbackend.model.vo.picture.PictureTagCategory;
 import org.example.picturecloudbackend.model.vo.picture.PictureVO;
 import org.example.picturecloudbackend.service.PictureService;
 import org.example.picturecloudbackend.service.UserService;
+import org.example.picturecloudbackend.utils.RedisUtils;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,8 +42,8 @@ public class PictureController {
     @Resource
     private PictureService pictureService;
 
-
     @GetMapping("/tag_category")
+
     public BaseResponse<PictureTagCategory> listPictureCategoryTag() {
         PictureTagCategory pictureTagCategory = new PictureTagCategory();
         List<String> categoryList = Arrays.asList("模板", "电商", "表情包", "素材", "海报");
@@ -120,17 +123,48 @@ public class PictureController {
         return ResultUtils.success(page, "成功获取图片列表");
     }
 
-    @PostMapping("/list/page/vo")
-    public BaseResponse<IPage<PictureVO>> listPictureVOByPage(@RequestBody PictureQueryRequest pictureQueryRequest, HttpServletRequest req) {
+    @Deprecated
+    @PostMapping("/list/page/vo/withoutCache")
+    public BaseResponse<IPage<PictureVO>> listPictureVOByPageWithoutCache(@RequestBody PictureQueryRequest pictureQueryRequest, HttpServletRequest req) {
         ThrowUtils.throwIf(pictureQueryRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         int current = pictureQueryRequest.getCurrent();
         int size = pictureQueryRequest.getPageSize();
-        ThrowUtils.throwIf(size >= 20, ErrorCode.PARAMS_ERROR, "获取图片页面大小过大");
+        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR, "获取图片页面大小过大");
         // 普通用户只能看到审核通过数据
         pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
         QueryWrapper<Picture> queryWrapper = pictureService.getQueryWrapper(pictureQueryRequest);
         IPage<Picture> picturePage = pictureService.page(new Page<>(current, size), queryWrapper);
         IPage<PictureVO> pictureVOPage = pictureService.getPictureVOPage(picturePage);
+        return ResultUtils.success(pictureVOPage, "成功获取图片列表");
+    }
+
+    @PostMapping("/list/page/vo")
+    public BaseResponse<IPage<PictureVO>> listPictureVOByPage(@RequestBody PictureQueryRequest pictureQueryRequest, HttpServletRequest req) {
+        ThrowUtils.throwIf(pictureQueryRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
+        int current = pictureQueryRequest.getCurrent();
+        int size = pictureQueryRequest.getPageSize();
+        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR, "获取图片页面大小过大");
+        // 普通用户只能看到审核通过数据
+        pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+        // 查询缓存
+        String queryCondition = JSONUtil.toJsonStr(pictureQueryRequest);
+        String queryHashKey = DigestUtils.md5DigestAsHex(queryCondition.getBytes());
+        String cacheKey = RedisUtils.getKey(CacheConstant.PICTURE_ZSET, queryHashKey);
+        IPage<PictureVO> pictureVOPageByCache = RedisUtils.get(cacheKey, Page.class);
+//        String cacheValue = localCache.getIfPresent(cacheKey);
+//        IPage<PictureVO> pictureVOPageByCache = JSONUtil.toBean(cacheValue, Page.class);
+        if (pictureVOPageByCache != null) {
+            return ResultUtils.success(pictureVOPageByCache, "成功获取图片列表");
+        }
+        // 查询数据库
+        QueryWrapper<Picture> queryWrapper = pictureService.getQueryWrapper(pictureQueryRequest);
+        IPage<Picture> picturePage = pictureService.page(new Page<>(current, size), queryWrapper);
+        IPage<PictureVO> pictureVOPage = pictureService.getPictureVOPage(picturePage);
+        // 存入缓存
+        String cacheValue = JSONUtil.toJsonStr(pictureVOPage);
+        RedisUtils.set(cacheKey, cacheValue, CacheConstant.TTL_5_MINUTES);
+//        cacheValue = JSONUtil.toJsonStr(pictureVOPage);
+//        localCache.put(cacheKey, cacheValue);
         return ResultUtils.success(pictureVOPage, "成功获取图片列表");
     }
 
@@ -178,5 +212,14 @@ public class PictureController {
         User loginUser = userService.getLoginUser(req);
         boolean res = pictureService.doPictureReview(pictureReviewerRequest, loginUser);
         return ResultUtils.success(res, "图片审核完成");
+    }
+
+    @PostMapping("/upload/batch")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Integer> uploadPictureByBatch(@RequestBody PictureUploadByBatchRequest pictureUploadByBatchRequest, HttpServletRequest req) {
+        ThrowUtils.throwIf(pictureUploadByBatchRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
+        User loginUser = userService.getLoginUser(req);
+        Integer successCount = pictureService.uploadPictureByBatch(pictureUploadByBatchRequest, loginUser);
+        return ResultUtils.success(successCount, String.format("图片批量上传成功，批量大小为%d", successCount));
     }
 }

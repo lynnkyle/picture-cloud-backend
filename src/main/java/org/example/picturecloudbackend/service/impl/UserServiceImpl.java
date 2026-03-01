@@ -217,7 +217,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         queryWrapper.like(StrUtil.isNotBlank(userAccount), "user_account", userAccount);
         queryWrapper.like(StrUtil.isNotBlank(userProfile), "user_profile", userProfile);
         Optional<String> optionalField = Optional.ofNullable(sortField).map(StringUtils::camelToUnderline);
-        queryWrapper.orderBy(StrUtil.isNotBlank(optionalField.get()), sortOrder.equals("ascend"), optionalField.get());
+        optionalField.ifPresent(s -> queryWrapper.orderBy(StrUtil.isNotBlank(s), sortOrder.equals("ascend"), s));
         return queryWrapper;
     }
 

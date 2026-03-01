@@ -14,7 +14,7 @@ public class PageRequest implements Serializable {
 
     private int current = 1;
 
-    private int pageSize = 10;
+    private int pageSize = 5;
 
     private String sortField;
 
