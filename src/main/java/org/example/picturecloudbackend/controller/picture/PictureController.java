@@ -22,16 +22,17 @@ import org.example.picturecloudbackend.model.vo.picture.PictureTagCategory;
 import org.example.picturecloudbackend.model.vo.picture.PictureVO;
 import org.example.picturecloudbackend.service.PictureService;
 import org.example.picturecloudbackend.service.UserService;
+import org.example.picturecloudbackend.service.cache.PictureCache;
+import org.example.picturecloudbackend.service.cache.PicturePageCache;
 import org.example.picturecloudbackend.utils.RedisUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @RequestMapping("/picture")
 @RestController
@@ -41,6 +42,10 @@ public class PictureController {
     private UserService userService;
     @Resource
     private PictureService pictureService;
+    @Resource
+    private PicturePageCache picturePageCache;
+    @Autowired
+    private PictureCache pictureCache;
 
     @GetMapping("/tag_category")
 
@@ -138,8 +143,9 @@ public class PictureController {
         return ResultUtils.success(pictureVOPage, "成功获取图片列表");
     }
 
-    @PostMapping("/list/page/vo")
-    public BaseResponse<IPage<PictureVO>> listPictureVOByPage(@RequestBody PictureQueryRequest pictureQueryRequest, HttpServletRequest req) {
+    @Deprecated
+    @PostMapping("/list/page/vo/deprecated")
+    public BaseResponse<IPage<PictureVO>> listPictureVOByPageDeprecated(@RequestBody PictureQueryRequest pictureQueryRequest, HttpServletRequest req) {
         ThrowUtils.throwIf(pictureQueryRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         int current = pictureQueryRequest.getCurrent();
         int size = pictureQueryRequest.getPageSize();
@@ -165,6 +171,19 @@ public class PictureController {
         RedisUtils.set(cacheKey, cacheValue, CacheConstant.TTL_5_MINUTES);
 //        cacheValue = JSONUtil.toJsonStr(pictureVOPage);
 //        localCache.put(cacheKey, cacheValue);
+        return ResultUtils.success(pictureVOPage, "成功获取图片列表");
+    }
+
+    @PostMapping("/list/page/vo")
+    public BaseResponse<IPage<PictureVO>> listPictureVOByPage(@RequestBody PictureQueryRequest pictureQueryRequest, HttpServletRequest req) {
+        ThrowUtils.throwIf(pictureQueryRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
+        int current = pictureQueryRequest.getCurrent();
+        int size = pictureQueryRequest.getPageSize();
+        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR, "获取图片页面大小过大");
+        // 普通用户只能看到审核通过数据
+        pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+        // 查询缓存
+        IPage<PictureVO> pictureVOPage = picturePageCache.listPictureVOByPage(pictureQueryRequest);
         return ResultUtils.success(pictureVOPage, "成功获取图片列表");
     }
 
