@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.example.picturecloudbackend.constant.CacheConstant;
 import org.example.picturecloudbackend.manager.cache.AbstractRedisCache;
+import org.example.picturecloudbackend.model.dto.cache.PageCacheData;
 import org.example.picturecloudbackend.model.dto.picture.PictureQueryRequest;
 import org.example.picturecloudbackend.model.entity.Picture;
 import org.example.picturecloudbackend.model.vo.picture.PictureVO;
@@ -20,14 +21,14 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
-public class PicturePageCache extends AbstractRedisCache<PictureQueryRequest, Set<Long>> {
+public class PicturePageCache extends AbstractRedisCache<PictureQueryRequest, PageCacheData> {
     @Resource
     private PictureCache pictureCache;
     @Resource
     private PictureService pictureService;
 
     public PicturePageCache() {
-        super((Class<Set<Long>>) (Class<?>) Set.class);
+        super(PageCacheData.class);
     }
 
     @Override
@@ -43,22 +44,26 @@ public class PicturePageCache extends AbstractRedisCache<PictureQueryRequest, Se
     }
 
     @Override
-    public Map<PictureQueryRequest, Set<Long>> loadFromDb(List<PictureQueryRequest> req) {
-        return req.stream().collect(Collectors.toMap(Function.identity(), e -> {
+    public Map<PictureQueryRequest, PageCacheData> loadFromDb(List<PictureQueryRequest> reqList) {
+        return reqList.stream().collect(Collectors.toMap(Function.identity(), e -> {
             QueryWrapper<Picture> queryWrapper = pictureService.getQueryWrapper(e);
             Page<Picture> page = new Page<>(e.getCurrent(), e.getPageSize());
-            return pictureService.page(page, queryWrapper).getRecords().stream().map(Picture::getId).collect(Collectors.toSet());
+            Page<Picture> dbPage = pictureService.page(page, queryWrapper);
+            List<Long> ids = dbPage.getRecords().stream().map(Picture::getId).collect(Collectors.toList());
+            long total = dbPage.getTotal();
+            return new PageCacheData(ids, total);
         }));
     }
 
     public IPage<PictureVO> listPictureVOByPage(PictureQueryRequest pictureQueryRequest) {
-        Map<PictureQueryRequest, Set<Long>> map = getBatch(Collections.singletonList(pictureQueryRequest));
+        Map<PictureQueryRequest, PageCacheData> map = getBatch(Collections.singletonList(pictureQueryRequest));
         // TODO 优化多次请求
-        Set<Long> idsSet = map.get(pictureQueryRequest);
-        Map<Long, Picture> pictureMap = pictureCache.getBatch(new ArrayList<>(idsSet));
+        PageCacheData pageCacheData = map.get(pictureQueryRequest);
+        Map<Long, Picture> pictureMap = pictureCache.getBatch(new ArrayList<>(pageCacheData.getIds()));
         List<Picture> pictureList = pictureMap.keySet().stream().map(pictureMap::get).collect(Collectors.toList());
         Page<Picture> page = new Page<>(pictureQueryRequest.getCurrent(), pictureQueryRequest.getPageSize());
         page.setRecords(pictureList);
+        page.setTotal(pageCacheData.getTotal());
         return pictureService.getPictureVOPage(page);
     }
 }

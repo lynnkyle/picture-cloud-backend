@@ -34,8 +34,8 @@ public class PictureCache extends AbstractRedisCache<Long, Picture> {
     }
 
     @Override
-    public Map<Long, Picture> loadFromDb(List<Long> req) {
-        List<Picture> pictureList = pictureMapper.selectByIds(req);
+    public Map<Long, Picture> loadFromDb(List<Long> reqList) {
+        List<Picture> pictureList = pictureMapper.selectByIds(reqList);
         return pictureList.stream().collect(Collectors.toMap(Picture::getId, Function.identity()));
     }
 }

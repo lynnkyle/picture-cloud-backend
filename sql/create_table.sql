@@ -54,6 +54,7 @@ create table picture
         primary key,
     pic_name       varchar(128)                       not null comment '图片名称',
     pic_url        varchar(512)                       not null comment '图片url',
+    thumbnail_url  varchar(512)                       null comment '缩略图',
     pic_intro      varchar(512)                       null comment '图片简介',
     pic_category   varchar(64)                        null comment '图片分类',
     pic_tags       varchar(512)                       null comment '图片标签（JSON 数组）',
@@ -70,7 +71,7 @@ create table picture
     review_status  int      default 0                 not null comment '审核状态:0-待审核, 1-通过, 2-拒绝',
     review_message varchar(512)                       null comment '审核信息',
     reviewer_id    bigint                             null comment '审核人id',
-    review_time  datetime                           null comment '审核时间',
+    review_time    datetime                           null comment '审核时间',
     index idx_name (pic_name),              -- 提升基于图片名称的查询性能
     index idx_introduction (pic_intro),     -- 用于模糊搜索图片简介
     index idx_category (pic_category),      -- 提升基于分类的查询性能

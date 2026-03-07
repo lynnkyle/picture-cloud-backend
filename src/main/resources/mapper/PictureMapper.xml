@@ -8,6 +8,7 @@
         <id property="id" column="id" jdbcType="BIGINT"/>
         <result property="picName" column="pic_name" jdbcType="VARCHAR"/>
         <result property="picUrl" column="pic_url" jdbcType="VARCHAR"/>
+        <result property="thumbnailUrl" column="thumbnail_url" jdbcType="VARCHAR"/>
         <result property="picIntro" column="pic_intro" jdbcType="VARCHAR"/>
         <result property="picCategory" column="pic_category" jdbcType="VARCHAR"/>
         <result property="picTags" column="pic_tags" jdbcType="VARCHAR"/>
@@ -28,7 +29,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,pic_name,pic_url,
+        id,pic_name,pic_url,thumbnail_url,
         pic_intro,pic_category,pic_tags,
         pic_size,pic_width,pic_height,
         pic_scale,pic_format,user_id,
