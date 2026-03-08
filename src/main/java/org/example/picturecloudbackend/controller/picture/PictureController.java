@@ -156,7 +156,7 @@ public class PictureController {
         String queryCondition = JSONUtil.toJsonStr(pictureQueryRequest);
         String queryHashKey = DigestUtils.md5DigestAsHex(queryCondition.getBytes());
         String cacheKey = RedisUtils.getKey(CacheConstant.PICTURE_ZSET, queryHashKey);
-        IPage<PictureVO> pictureVOPageByCache = RedisUtils.get(cacheKey, Page.class);
+        Page<PictureVO> pictureVOPageByCache = RedisUtils.get(cacheKey, Page.class);
 //        String cacheValue = localCache.getIfPresent(cacheKey);
 //        IPage<PictureVO> pictureVOPageByCache = JSONUtil.toBean(cacheValue, Page.class);
         if (pictureVOPageByCache != null) {
@@ -167,8 +167,7 @@ public class PictureController {
         IPage<Picture> picturePage = pictureService.page(new Page<>(current, size), queryWrapper);
         IPage<PictureVO> pictureVOPage = pictureService.getPictureVOPage(picturePage);
         // 存入缓存
-        String cacheValue = JSONUtil.toJsonStr(pictureVOPage);
-        RedisUtils.set(cacheKey, cacheValue, CacheConstant.TTL_5_MINUTES);
+        RedisUtils.set(cacheKey, pictureVOPage, CacheConstant.TTL_5_MINUTES);
 //        cacheValue = JSONUtil.toJsonStr(pictureVOPage);
 //        localCache.put(cacheKey, cacheValue);
         return ResultUtils.success(pictureVOPage, "成功获取图片列表");
@@ -220,6 +219,8 @@ public class PictureController {
             throw new BusinessException(ErrorCode.NOT_AUTH_ERROR, "用户无权限删除图片");
         }
         boolean res = pictureService.removeById(id);
+        // 清理图片资源
+        pictureService.clearPictureFile(pictureFromDb);
         ThrowUtils.throwIf(!res, ErrorCode.OPERATION_ERROR, "数据库删除图片失败");
         return ResultUtils.success(res, "成功删除用户");
     }

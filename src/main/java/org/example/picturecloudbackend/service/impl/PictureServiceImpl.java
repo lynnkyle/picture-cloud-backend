@@ -16,6 +16,7 @@ import org.example.picturecloudbackend.enums.PictureReviewStatusEnum;
 import org.example.picturecloudbackend.exception.BusinessException;
 import org.example.picturecloudbackend.exception.ErrorCode;
 import org.example.picturecloudbackend.exception.ThrowUtils;
+import org.example.picturecloudbackend.manager.CosManager;
 import org.example.picturecloudbackend.manager.FileManager;
 import org.example.picturecloudbackend.manager.upload.FilePictureUpload;
 import org.example.picturecloudbackend.manager.upload.PictureUploadTemplate;
@@ -36,8 +37,10 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -64,6 +67,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
 
     @Resource
     private UrlPictureUpload urlPictureUpload;
+    @Autowired
+    private CosManager cosManager;
 
     /**
      * 上传图片
@@ -79,8 +84,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         ThrowUtils.throwIf(inputStream == null, ErrorCode.PARAMS_ERROR, "文件不能为空");
         // 判断更新或删除
         Long pictureId = Optional.ofNullable(pictureUploadRequest).map(PictureUploadRequest::getId).orElse(null);
+        Picture pictureFromDb = null;
         if (pictureId != null) {
-            Picture pictureFromDb = this.getById(pictureId);
+            pictureFromDb = this.getById(pictureId);
             ThrowUtils.throwIf(pictureFromDb == null, ErrorCode.NOT_FOUND_ERROR, "图片不存在");
             // 仅本人和管理员可编辑图片
             if (!hasWritePermission(pictureFromDb, loginUser)) {
@@ -112,6 +118,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         }
         fillReviewParams(picture, loginUser);
         boolean res = this.saveOrUpdate(picture);
+        // 更新
+        if (pictureFromDb != null) {
+            clearPictureFile(pictureFromDb);
+        }
         ThrowUtils.throwIf(!res, ErrorCode.OPERATION_ERROR, "数据库保存图片失败");
         return PictureVO.objToVo(picture);
     }
@@ -306,7 +316,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         }
         ThrowUtils.throwIf(count > 5, ErrorCode.PARAMS_ERROR, "请求不得超过5条数据");
         // 2.提取内容
-        String fetchUrl = String.format("https://cn.bing.com/images/async?q=%s&first=&mmasync=1", RandomUtil.randomInt(), searchText);
+        String fetchUrl = String.format("https://cn.bing.com/images/async?q=%s&first=%d&mmasync=1", searchText, RandomUtil.randomInt(1, 15));
         Document document = null;
         try {
             document = Jsoup.connect(fetchUrl).get();
@@ -345,6 +355,22 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             }
         }
         return uploadCount;
+    }
+
+    @Async
+    @Override
+    public void clearPictureFile(Picture oldPicture) {
+        // 判断图片（图片是否被多条记录使用）
+        String picUrl = oldPicture.getPicUrl();
+        long count = this.lambdaQuery().eq(Picture::getPicUrl, picUrl).count();
+        if (count > 1) {
+            return;
+        }
+        cosManager.deleteObject(picUrl);
+        String thumbnailUrl = oldPicture.getThumbnailUrl();
+        if (StrUtil.isNotBlank(thumbnailUrl)) {
+            cosManager.deleteObject(thumbnailUrl);
+        }
     }
 }
 

@@ -59,8 +59,8 @@ public class PicturePageCache extends AbstractRedisCache<PictureQueryRequest, Pa
         Map<PictureQueryRequest, PageCacheData> map = getBatch(Collections.singletonList(pictureQueryRequest));
         // TODO 优化多次请求
         PageCacheData pageCacheData = map.get(pictureQueryRequest);
-        Map<Long, Picture> pictureMap = pictureCache.getBatch(new ArrayList<>(pageCacheData.getIds()));
-        List<Picture> pictureList = pictureMap.keySet().stream().map(pictureMap::get).collect(Collectors.toList());
+        Map<Long, Picture> pictureMap = pictureCache.getBatch(pageCacheData.getIds());
+        List<Picture> pictureList = new ArrayList<>(pictureMap.values());
         Page<Picture> page = new Page<>(pictureQueryRequest.getCurrent(), pictureQueryRequest.getPageSize());
         page.setRecords(pictureList);
         page.setTotal(pageCacheData.getTotal());

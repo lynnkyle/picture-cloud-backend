@@ -2,10 +2,7 @@ package org.example.picturecloudbackend.manager;
 
 import cn.hutool.core.io.FileUtil;
 import com.qcloud.cos.COSClient;
-import com.qcloud.cos.model.COSObject;
-import com.qcloud.cos.model.GetObjectRequest;
-import com.qcloud.cos.model.PutObjectRequest;
-import com.qcloud.cos.model.PutObjectResult;
+import com.qcloud.cos.model.*;
 import com.qcloud.cos.model.ciModel.common.ImageProcessRequest;
 import com.qcloud.cos.model.ciModel.persistence.CIUploadResult;
 import com.qcloud.cos.model.ciModel.persistence.OriginalInfo;
@@ -49,6 +46,17 @@ public class CosManager {
     }
 
     /**
+     * 删除对象
+     *
+     * @param key 文件名称(唯一键)
+     * @return
+     */
+    public void deleteObject(String key) {
+        DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(cosClientConfig.getBucket(), key);
+        cosClient.deleteObject(deleteObjectRequest);
+    }
+
+    /**
      * 上传并解析对象(附带文件信息)
      *
      * @param key   文件名称(唯一键)
@@ -71,12 +79,15 @@ public class CosManager {
         compressRule.setRule("imageMogr2/format/webp");
         rules.add(compressRule);
         // 缩略图处理
-        String thumbnailKey = String.format("%s_thumbnail.%s", FileUtil.mainName(key), FileUtil.getSuffix(key));
-        PicOperations.Rule thumbnailRule = new PicOperations.Rule();
-        thumbnailRule.setBucket(cosClientConfig.getBucket());
-        thumbnailRule.setFileId(thumbnailKey);
-        thumbnailRule.setRule(String.format("imageMogr2/thumbnail/%sx%s>", 256, 256));
-        rules.add(thumbnailRule);
+        final long ONE_KB = 1024;
+        if (file.length() > 2 * ONE_KB) {
+            String thumbnailKey = String.format("%s_thumbnail.%s", FileUtil.mainName(key), FileUtil.getSuffix(key));
+            PicOperations.Rule thumbnailRule = new PicOperations.Rule();
+            thumbnailRule.setBucket(cosClientConfig.getBucket());
+            thumbnailRule.setFileId(thumbnailKey);
+            thumbnailRule.setRule(String.format("imageMogr2/thumbnail/%sx%s>", 256, 256));
+            rules.add(thumbnailRule);
+        }
         picOperations.setRules(rules);
         //
         putObjectRequest.setPicOperations(picOperations);

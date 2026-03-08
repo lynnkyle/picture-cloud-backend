@@ -13,7 +13,7 @@ public interface CacheConstant {
 
     // 图片信息缓存
     String PICTURE_INFO_STRING = "pictureInfo:pictureId_%d";
-
+    String THUMBNAIL_PICTURE_INFO_STRING = "thumbnailPictureInfo:pictureId_%d";
     // ========================缓存值========================
     String CACHE_NULL = "NULL";
 
