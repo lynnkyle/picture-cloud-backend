@@ -79,7 +79,7 @@ public class PictureVO implements Serializable {
     private Long userId;
 
     /**
-     * 创建用户id
+     * 创建用户
      */
     private UserVO user;
 
@@ -109,7 +109,6 @@ public class PictureVO implements Serializable {
         }
         Picture picture = new Picture();
         BeanUtil.copyProperties(pictureVO, picture);
-        picture.setPicTags(JSONUtil.toJsonStr(picture.getPicTags()));
         return picture;
     }
 

@@ -19,6 +19,12 @@ import org.example.picturecloudbackend.model.vo.picture.PictureVO;
  */
 public interface PictureService extends IService<Picture> {
     /**
+     * 图片校验(图片修改校验)
+     * @param picture
+     */
+    void validPicture(Picture picture);
+
+    /**
      * 上传图片
      * @param pictureUploadRequest
      * @param inputStream
@@ -28,20 +34,14 @@ public interface PictureService extends IService<Picture> {
     <T> PictureVO uploadPicture(PictureUploadRequest pictureUploadRequest, T inputStream, User loginUser);
 
     /**
-     * 图片校验(图片修改校验)
-     * @param picture
-     */
-    void validPicture(Picture picture);
-
-    /**
-     * 获取用户脱敏信息列表
+     * 获取图片脱敏信息列表
      * @param picture
      * @return
      */
     PictureVO getPictureVO(Picture picture);
 
     /**
-     * c列表
+     * 分页获取图片脱敏信息列表
      * @param picturePage
      * @return
      */
