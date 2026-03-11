@@ -2,9 +2,11 @@ package org.example.picturecloudbackend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import org.example.picturecloudbackend.model.dto.space.SpaceAddRequest;
 import org.example.picturecloudbackend.model.dto.space.SpaceQueryRequest;
 import org.example.picturecloudbackend.model.entity.Space;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.example.picturecloudbackend.model.entity.User;
 import org.example.picturecloudbackend.model.vo.space.SpaceVO;
 
 /**
@@ -13,6 +15,14 @@ import org.example.picturecloudbackend.model.vo.space.SpaceVO;
  * @createDate 2026-03-09 20:10:10
  */
 public interface SpaceService extends IService<Space> {
+    /**
+     * 创建空间
+     * @param spaceAddRequest
+     * @param loginUser
+     * @return
+     */
+    long addSpace(SpaceAddRequest spaceAddRequest, User loginUser);
+
     /**
      * 空间校验(空间修改校验)
      * @param space
@@ -45,4 +55,12 @@ public interface SpaceService extends IService<Space> {
      * @param space
      */
     void fillSpaceBySpaceLevel(Space space);
+
+    /**
+     * 空间写权限判断
+     * @param space
+     * @param loginUser
+     * @return
+     */
+    boolean hasWritePermission(Space space, User loginUser);
 }

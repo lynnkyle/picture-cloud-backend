@@ -77,6 +77,7 @@ public class PictureController {
 
 
     @PostMapping("/update")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Long> updatePicture(@RequestBody PictureUpdateRequest pictureUpdateRequest, HttpServletRequest req) {
         // 1.检验参数
         ThrowUtils.throwIf(pictureUpdateRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
@@ -86,12 +87,11 @@ public class PictureController {
         Picture picture = new Picture();
         BeanUtil.copyProperties(pictureUpdateRequest, picture);
         picture.setPicTags(JSONUtil.toJsonStr(pictureUpdateRequest.getPicTags()));
+        // 数据校验
+        pictureService.validPicture(picture);
         Picture pictureFromDb = pictureService.getById(id);
         ThrowUtils.throwIf(pictureFromDb == null, ErrorCode.NOT_FOUND_ERROR, "更新图片不存在");
         User loginUser = userService.getLoginUser(req);
-        if (!pictureService.hasWritePermission(pictureFromDb, loginUser)) {
-            throw new BusinessException(ErrorCode.NOT_AUTH_ERROR, "用户无权限更新图片");
-        }
         pictureService.fillReviewParams(picture, loginUser);
         // 3.操作数据库
         boolean res = pictureService.updateById(picture);
@@ -102,7 +102,7 @@ public class PictureController {
     @GetMapping("/get")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Picture> getPictureById(Long id) {
-        ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR, "获取图片id为空");
+        ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         Picture picture = pictureService.getById(id);
         ThrowUtils.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR, "获取图片不存在");
         return ResultUtils.success(picture, "成功获取图片");
@@ -110,7 +110,7 @@ public class PictureController {
 
     @GetMapping("/get/vo")
     public BaseResponse<PictureVO> getPictureVOById(Long id) {
-        ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR, "获取图片id为空");
+        ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         Picture picture = pictureService.getById(id);
         PictureVO pictureVO = pictureService.getPictureVO(picture);
         ThrowUtils.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR, "获取图片不存在");

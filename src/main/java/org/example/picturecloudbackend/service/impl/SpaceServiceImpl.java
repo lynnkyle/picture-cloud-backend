@@ -15,6 +15,7 @@ import org.example.picturecloudbackend.enums.SpaceLevelEnum;
 import org.example.picturecloudbackend.exception.ErrorCode;
 import org.example.picturecloudbackend.exception.ThrowUtils;
 import org.example.picturecloudbackend.mapper.SpaceMapper;
+import org.example.picturecloudbackend.model.dto.space.SpaceAddRequest;
 import org.example.picturecloudbackend.model.dto.space.SpaceQueryRequest;
 import org.example.picturecloudbackend.model.entity.Picture;
 import org.example.picturecloudbackend.model.entity.Space;
@@ -37,6 +38,11 @@ import javax.annotation.Resource;
 public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements SpaceService {
     @Resource
     private UserService userService;
+
+    @Override
+    public long addSpace(SpaceAddRequest spaceAddRequest, User loginUser) {
+        return 0;
+    }
 
     @Override
     public void validSpace(Space space, boolean add) {
@@ -106,6 +112,14 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         Optional<String> optionalField = Optional.ofNullable(sortField).map(StringUtils::camelToUnderline);
         optionalField.ifPresent(s -> queryWrapper.orderBy(StrUtil.isNotBlank(s), sortOrder.equals("ascend"), s));
         return queryWrapper;
+    }
+
+    @Override
+    public boolean hasWritePermission(Space space, User loginUser) {
+        if (userService.isAdmin(loginUser)) {
+            return true;
+        }
+        return Objects.equals(space.getUserId(), loginUser.getId());
     }
 
     @Override
