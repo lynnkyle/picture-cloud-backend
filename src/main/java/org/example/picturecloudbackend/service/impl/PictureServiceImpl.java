@@ -28,10 +28,12 @@ import org.example.picturecloudbackend.model.dto.picture.PictureReviewerRequest;
 import org.example.picturecloudbackend.model.dto.picture.PictureUploadByBatchRequest;
 import org.example.picturecloudbackend.model.dto.picture.PictureUploadRequest;
 import org.example.picturecloudbackend.model.entity.Picture;
+import org.example.picturecloudbackend.model.entity.Space;
 import org.example.picturecloudbackend.model.entity.User;
 import org.example.picturecloudbackend.model.vo.picture.PictureVO;
 import org.example.picturecloudbackend.model.vo.user.UserVO;
 import org.example.picturecloudbackend.service.PictureService;
+import org.example.picturecloudbackend.service.SpaceService;
 import org.example.picturecloudbackend.service.UserService;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -63,11 +65,15 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     private UserService userService;
 
     @Resource
+    private SpaceService spaceService;
+
+    @Resource
     private FilePictureUpload filePictureUpload;
 
     @Resource
     private UrlPictureUpload urlPictureUpload;
-    @Autowired
+
+    @Resource
     private CosManager cosManager;
 
     /**
@@ -82,6 +88,12 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     public <T> PictureVO uploadPicture(PictureUploadRequest pictureUploadRequest, T inputStream, User loginUser) {
         // 校验参数
         ThrowUtils.throwIf(inputStream == null, ErrorCode.PARAMS_ERROR, "文件不能为空");
+        Long spaceId = pictureUploadRequest.getSpaceId();
+        if (spaceId != null) {
+            Space space = spaceService.getById(spaceId);
+            ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+            ThrowUtils.throwIf(!Objects.equals(loginUser.getId(), space.getUserId()), ErrorCode.NOT_AUTH_ERROR, "用户无权限上传图片");
+        }
         // 判断更新或删除
         Long pictureId = Optional.ofNullable(pictureUploadRequest).map(PictureUploadRequest::getId).orElse(null);
         Picture pictureFromDb = null;

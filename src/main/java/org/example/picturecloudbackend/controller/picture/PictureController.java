@@ -222,7 +222,7 @@ public class PictureController {
         // 清理图片资源
         pictureService.clearPictureFile(pictureFromDb);
         ThrowUtils.throwIf(!res, ErrorCode.OPERATION_ERROR, "数据库删除图片失败");
-        return ResultUtils.success(res, "成功删除用户");
+        return ResultUtils.success(res, "成功删除图片");
     }
 
     @PostMapping("/review")

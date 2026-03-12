@@ -42,30 +42,11 @@ public class SpaceController {
     private SpaceService spaceService;
 
     @PostMapping("/add")
-    public BaseResponse<Long> addSpace(@RequestBody SpaceAddRequest spaceAddRequest, User loginUser) {
-        // 1.填充参数默认值
-        Space space = new Space();
-        BeanUtil.copyProperties(spaceAddRequest, space);
-        if (StrUtil.isEmpty(space.getSpaceName())) {
-            space.setSpaceName("默认空间");
-        }
-        if (space.getSpaceLevel() == null) {
-            space.setSpaceLevel(SpaceLevelEnum.COMMON.getValue());
-        }
-        spaceService.fillSpaceBySpaceLevel(space);
-        // 2.校验参数
-        spaceService.validSpace(space, true);
-        // 3.检验权限，非管理员只能创建普通级别的空间
-        Long userId = loginUser.getId();
-        space.setUserId(userId);
-        if (SpaceLevelEnum.COMMON.getValue() != space.getSpaceLevel() && !userService.isAdmin(loginUser)) {
-            throw new BusinessException(ErrorCode.NOT_AUTH_ERROR, "无权限创建指定级别空间");
-        }
-        // 4.控制同一用户只能创建一个私有空间（采用加锁+事务方式实现）
-        String lock = String.valueOf(userId).intern();
-        synchronized (lock) {
-
-        }
+    public BaseResponse<Long> addSpace(@RequestBody SpaceAddRequest spaceAddRequest, HttpServletRequest req) {
+        ThrowUtils.throwIf(spaceAddRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
+        User loginUser = userService.getLoginUser(req);
+        long spaceId = spaceService.addSpace(spaceAddRequest, loginUser);
+        return ResultUtils.success(spaceId, "成功创建空间");
     }
 
     @PostMapping("/delete")
@@ -81,7 +62,7 @@ public class SpaceController {
         }
         boolean res = spaceService.removeById(id);
         ThrowUtils.throwIf(!res, ErrorCode.OPERATION_ERROR, "数据库删除空间失败");
-        return ResultUtils.success(res, "成功删除用户");
+        return ResultUtils.success(res, "成功删除空间");
     }
 
     @PostMapping("/update")

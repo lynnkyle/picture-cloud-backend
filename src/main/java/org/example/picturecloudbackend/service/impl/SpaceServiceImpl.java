@@ -3,6 +3,7 @@ package org.example.picturecloudbackend.service.impl;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
@@ -12,6 +13,7 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.example.picturecloudbackend.enums.SpaceLevelEnum;
+import org.example.picturecloudbackend.exception.BusinessException;
 import org.example.picturecloudbackend.exception.ErrorCode;
 import org.example.picturecloudbackend.exception.ThrowUtils;
 import org.example.picturecloudbackend.mapper.SpaceMapper;
@@ -25,7 +27,9 @@ import org.example.picturecloudbackend.model.vo.space.SpaceVO;
 import org.example.picturecloudbackend.model.vo.user.UserVO;
 import org.example.picturecloudbackend.service.SpaceService;
 import org.example.picturecloudbackend.service.UserService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.Resource;
 
@@ -38,10 +42,45 @@ import javax.annotation.Resource;
 public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements SpaceService {
     @Resource
     private UserService userService;
+    @Resource
+    private TransactionTemplate transactionTemplate;
 
     @Override
     public long addSpace(SpaceAddRequest spaceAddRequest, User loginUser) {
-        return 0;
+        // 1.填充参数默认值
+        Space space = new Space();
+        BeanUtil.copyProperties(spaceAddRequest, space);
+        if (StrUtil.isEmpty(space.getSpaceName())) {
+            space.setSpaceName("默认空间");
+        }
+        if (space.getSpaceLevel() == null) {
+            space.setSpaceLevel(SpaceLevelEnum.COMMON.getValue());
+        }
+        fillSpaceBySpaceLevel(space);
+        // 2.校验参数
+        validSpace(space, true);
+        // 3.检验权限，非管理员只能创建普通级别的空间
+        Long userId = loginUser.getId();
+        space.setUserId(userId);
+        if (SpaceLevelEnum.COMMON.getValue() != space.getSpaceLevel() && !userService.isAdmin(loginUser)) {
+            throw new BusinessException(ErrorCode.NOT_AUTH_ERROR, "无权限创建指定级别空间");
+        }
+        // 4.控制同一用户只能创建一个私有空间（采用加锁+事务方式实现）
+        // TODO: 本地锁优化 / 分布式锁
+        String lock = String.valueOf(userId).intern();
+        synchronized (lock) {
+            Long spaceId = transactionTemplate.execute(status -> {
+                // 判断是否已有空间
+                boolean exists = this.lambdaQuery().eq(Space::getUserId, userId).exists();
+                // 已有空间不能创建
+                ThrowUtils.throwIf(exists, ErrorCode.OPERATION_ERROR, "一个用户只能创建一个空间");
+                // 创建空间
+                boolean res = this.save(space);
+                ThrowUtils.throwIf(res, ErrorCode.OPERATION_ERROR, "数据库插入空间失败");
+                return space.getId();
+            });
+            return spaceId;
+        }
     }
 
     @Override
