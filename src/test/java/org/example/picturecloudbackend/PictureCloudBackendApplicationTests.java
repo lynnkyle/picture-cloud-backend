@@ -1,7 +1,6 @@
 package org.example.picturecloudbackend;
 
 
-import cn.hutool.json.JSONUtil;
 import org.example.picturecloudbackend.mapper.PictureMapper;
 import org.example.picturecloudbackend.model.entity.Picture;
 import org.example.picturecloudbackend.service.cache.PictureCache;
@@ -9,9 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 @SpringBootTest
