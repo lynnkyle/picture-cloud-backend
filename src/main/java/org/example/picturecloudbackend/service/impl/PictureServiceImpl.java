@@ -11,8 +11,12 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
+import org.example.picturecloudbackend.common.BaseResponse;
+import org.example.picturecloudbackend.common.DeleteRequest;
+import org.example.picturecloudbackend.common.ResultUtils;
 import org.example.picturecloudbackend.constant.UploadConstant;
 import org.example.picturecloudbackend.enums.PictureReviewStatusEnum;
+import org.example.picturecloudbackend.enums.UserRoleEnum;
 import org.example.picturecloudbackend.exception.BusinessException;
 import org.example.picturecloudbackend.exception.ErrorCode;
 import org.example.picturecloudbackend.exception.ThrowUtils;
@@ -44,6 +48,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -104,9 +109,21 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             if (!hasWritePermission(pictureFromDb, loginUser)) {
                 throw new BusinessException(ErrorCode.NOT_AUTH_ERROR, "用户无权限更新图片");
             }
+            // 校验空间是否一致
+            Long spaceIdFromDb = pictureFromDb.getSpaceId();
+            if (spaceId == null) {
+                if (spaceIdFromDb != null) {
+                    spaceId = spaceIdFromDb;
+                }
+            } else {
+                ThrowUtils.throwIf(Objects.equals(spaceId, spaceIdFromDb), ErrorCode.PARAMS_ERROR, "用户更新图片上传空间不一致");
+            }
         }
         // 上传图片,得到图片信息
         String uploadPrefix = String.format("%s/%s", UploadConstant.PUBLIC, loginUser.getId());
+        if (spaceId != null) {
+            uploadPrefix = String.format("%s/%s", UploadConstant.PRIVATE, spaceId);
+        }
         PictureUploadTemplate pictureUploadTemplate = null;
         if (inputStream instanceof MultipartFile) {
             pictureUploadTemplate = filePictureUpload;
@@ -118,6 +135,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         UploadPictureResult uploadPictureResult = pictureUploadTemplate.uploadPicture(inputStream, uploadPrefix);
         Picture picture = new Picture();
         BeanUtil.copyProperties(uploadPictureResult, picture);
+        picture.setSpaceId(spaceId); // 指定空间id
         String picName = pictureUploadRequest.getPicName();
         if (StrUtil.isNotBlank(picName)) {
             picture.setPicName(picName);
@@ -140,6 +158,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
 
     /**
      * 图片校验(图片修改校验)
+     *
      * @param picture
      */
     @Override
@@ -258,6 +277,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
 
     /**
      * 图片审核
+     *
      * @param pictureReviewerRequest
      * @param loginUser
      * @return
@@ -287,6 +307,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
 
     /**
      * 图片写权限判断
+     *
      * @param picture
      * @param loginUser
      * @return
@@ -300,7 +321,30 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
     }
 
     /**
+     * 校验空间图片权限
+     *
+     * @param loginUser
+     * @param picture
+     */
+    @Override
+    public void checkPictureAuth(User loginUser, Picture picture) {
+        Long spaceId = picture.getSpaceId();
+        if (spaceId == null) {
+            // 公共图库
+            if (!Objects.equals(loginUser.getId(), picture.getUserId()) && !userService.isAdmin(loginUser)) {
+                throw new BusinessException(ErrorCode.NOT_AUTH_ERROR, "用户无权限操作图片");
+            }
+        } else {
+            // 私有图库
+            if (!Objects.equals(loginUser.getId(), picture.getUserId())) {
+                throw new BusinessException(ErrorCode.NOT_AUTH_ERROR, "用户无权限操作图片");
+            }
+        }
+    }
+
+    /**
      * 审核参数填充
+     *
      * @param picture
      * @param loginUser
      */
@@ -383,6 +427,22 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         if (StrUtil.isNotBlank(thumbnailUrl)) {
             cosManager.deleteObject(thumbnailUrl);
         }
+    }
+
+    @Override
+    public Boolean deletePicture(@RequestBody DeleteRequest deleteRequest, HttpServletRequest req) {
+        Long id = deleteRequest.getId();
+        ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR, "删除图片id为空");
+        Picture pictureFromDb = getById(id);
+        ThrowUtils.throwIf(pictureFromDb == null, ErrorCode.NOT_FOUND_ERROR, "删除图片不存在");
+        User loginUser = userService.getLoginUser(req);
+        // 校验权限
+        checkPictureAuth(loginUser, pictureFromDb);
+        boolean res = removeById(id);
+        // 清理图片资源
+        clearPictureFile(pictureFromDb);
+        ThrowUtils.throwIf(!res, ErrorCode.OPERATION_ERROR, "数据库删除图片失败");
+        return res;
     }
 }
 

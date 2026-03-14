@@ -4,6 +4,8 @@ package org.example.picturecloudbackend.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.example.picturecloudbackend.common.BaseResponse;
+import org.example.picturecloudbackend.common.DeleteRequest;
 import org.example.picturecloudbackend.model.dto.picture.PictureQueryRequest;
 import org.example.picturecloudbackend.model.dto.picture.PictureReviewerRequest;
 import org.example.picturecloudbackend.model.dto.picture.PictureUploadByBatchRequest;
@@ -11,6 +13,9 @@ import org.example.picturecloudbackend.model.dto.picture.PictureUploadRequest;
 import org.example.picturecloudbackend.model.entity.Picture;
 import org.example.picturecloudbackend.model.entity.User;
 import org.example.picturecloudbackend.model.vo.picture.PictureVO;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author LinZeyuan
@@ -20,12 +25,14 @@ import org.example.picturecloudbackend.model.vo.picture.PictureVO;
 public interface PictureService extends IService<Picture> {
     /**
      * 图片校验(图片修改校验)
+     *
      * @param picture
      */
     void validPicture(Picture picture);
 
     /**
      * 上传图片
+     *
      * @param pictureUploadRequest
      * @param inputStream
      * @param loginUser
@@ -35,6 +42,7 @@ public interface PictureService extends IService<Picture> {
 
     /**
      * 获取图片脱敏信息列表
+     *
      * @param picture
      * @return
      */
@@ -42,6 +50,7 @@ public interface PictureService extends IService<Picture> {
 
     /**
      * 分页获取图片脱敏信息列表
+     *
      * @param picturePage
      * @return
      */
@@ -49,6 +58,7 @@ public interface PictureService extends IService<Picture> {
 
     /**
      * 获取查询图片
+     *
      * @param pictureQueryRequest
      * @return
      */
@@ -56,12 +66,14 @@ public interface PictureService extends IService<Picture> {
 
     /**
      * 图片审核
+     *
      * @param pictureReviewerRequest
      */
     boolean doPictureReview(PictureReviewerRequest pictureReviewerRequest, User loginUser);
 
     /**
      * 图片写权限判断
+     *
      * @param picture
      * @param loginUser
      * @return
@@ -69,7 +81,16 @@ public interface PictureService extends IService<Picture> {
     boolean hasWritePermission(Picture picture, User loginUser);
 
     /**
+     * 校验空间图片权限
+     *
+     * @param loginUser
+     * @param picture
+     */
+    void checkPictureAuth(User loginUser, Picture picture);
+
+    /**
      * 审核参数填充
+     *
      * @param picture
      * @param loginUser
      */
@@ -77,6 +98,7 @@ public interface PictureService extends IService<Picture> {
 
     /**
      * 批量上传图片(返回批量上传成功的图片数量)
+     *
      * @param pictureUploadByBatchRequest
      * @param loginUser
      * @return
@@ -85,8 +107,18 @@ public interface PictureService extends IService<Picture> {
 
     /**
      * 清理图片文件
+     *
      * @param oldPicture
      */
     void clearPictureFile(Picture oldPicture);
+
+    /**
+     * 删除图片
+     *
+     * @param deleteRequest
+     * @param req
+     * @return
+     */
+    Boolean deletePicture(@RequestBody DeleteRequest deleteRequest, HttpServletRequest req);
 }
 

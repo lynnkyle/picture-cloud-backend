@@ -210,18 +210,7 @@ public class PictureController {
     @PostMapping("/delete")
     public BaseResponse<Boolean> deletePicture(@RequestBody DeleteRequest deleteRequest, HttpServletRequest req) {
         ThrowUtils.throwIf(deleteRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
-        Long id = deleteRequest.getId();
-        ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR, "删除图片id为空");
-        Picture pictureFromDb = pictureService.getById(id);
-        ThrowUtils.throwIf(pictureFromDb == null, ErrorCode.NOT_FOUND_ERROR, "删除图片不存在");
-        User loginUser = userService.getLoginUser(req);
-        if (!pictureService.hasWritePermission(pictureFromDb, loginUser)) {
-            throw new BusinessException(ErrorCode.NOT_AUTH_ERROR, "用户无权限删除图片");
-        }
-        boolean res = pictureService.removeById(id);
-        // 清理图片资源
-        pictureService.clearPictureFile(pictureFromDb);
-        ThrowUtils.throwIf(!res, ErrorCode.OPERATION_ERROR, "数据库删除图片失败");
+        Boolean res = pictureService.deletePicture(deleteRequest, req);
         return ResultUtils.success(res, "成功删除图片");
     }
 
