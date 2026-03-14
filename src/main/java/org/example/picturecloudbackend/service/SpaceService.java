@@ -16,18 +16,40 @@ import org.example.picturecloudbackend.model.vo.space.SpaceVO;
  */
 public interface SpaceService extends IService<Space> {
     /**
+     * 空间校验(空间修改校验)
+     * @param space
+     */
+    void validSpace(Space space, boolean add);
+
+    /**
+     * 空间写权限判断
+     * @param space
+     * @param loginUser
+     * @return
+     */
+    boolean checkSpaceAuth(Space space, User loginUser);
+
+    /**
+     * 填充空间
+     * @param space
+     */
+    void fillSpaceBySpaceLevel(Space space);
+
+    /**
+     * 获取查询空间
+     * @param spaceQueryRequest
+     * @return
+     */
+    QueryWrapper<Space> getQueryWrapper(SpaceQueryRequest spaceQueryRequest);
+    /*=========================公共模块=============================*/
+
+    /**
      * 创建空间
      * @param spaceAddRequest
      * @param loginUser
      * @return
      */
     long addSpace(SpaceAddRequest spaceAddRequest, User loginUser);
-
-    /**
-     * 空间校验(空间修改校验)
-     * @param space
-     */
-    void validSpace(Space space, boolean add);
 
     /**
      * 获取用户脱敏信息列表
@@ -43,24 +65,4 @@ public interface SpaceService extends IService<Space> {
      */
     IPage<SpaceVO> getSpaceVOPage(IPage<Space> spacePage);
 
-    /**
-     * 获取查询空间
-     * @param spaceQueryRequest
-     * @return
-     */
-    QueryWrapper<Space> getQueryWrapper(SpaceQueryRequest spaceQueryRequest);
-
-    /**
-     * 填充空间
-     * @param space
-     */
-    void fillSpaceBySpaceLevel(Space space);
-
-    /**
-     * 空间写权限判断
-     * @param space
-     * @param loginUser
-     * @return
-     */
-    boolean hasWritePermission(Space space, User loginUser);
 }

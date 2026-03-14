@@ -68,6 +68,11 @@ public class PictureQueryRequest extends PageRequest implements Serializable {
     private Long userId;
 
     /**
+     * 空间id
+     */
+    private Long spaceId;
+
+    /**
      * 搜索词(同时搜索名称，简介等)
      */
     private String searchText;

@@ -1,8 +1,6 @@
 package org.example.picturecloudbackend.controller.space;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -21,6 +19,7 @@ import org.example.picturecloudbackend.model.dto.space.SpaceQueryRequest;
 import org.example.picturecloudbackend.model.dto.space.SpaceUpdateRequest;
 import org.example.picturecloudbackend.model.entity.Space;
 import org.example.picturecloudbackend.model.entity.User;
+import org.example.picturecloudbackend.model.vo.space.SpaceLevel;
 import org.example.picturecloudbackend.model.vo.space.SpaceVO;
 import org.example.picturecloudbackend.service.SpaceService;
 import org.example.picturecloudbackend.service.UserService;
@@ -31,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequestMapping("/space")
 @RestController
@@ -41,7 +41,19 @@ public class SpaceController {
     @Resource
     private SpaceService spaceService;
 
+    @GetMapping("/list/level")
+    public BaseResponse<List<SpaceLevel>> listSpaceLevel() {
+        List<SpaceLevel> spaceLevelList = Arrays.stream(SpaceLevelEnum.values()).map(
+                spaceLevelEnum -> new SpaceLevel(spaceLevelEnum.getValue(),
+                        spaceLevelEnum.getText(),
+                        spaceLevelEnum.getMaxCount(),
+                        spaceLevelEnum.getMaxSize())
+        ).collect(Collectors.toList());
+        return ResultUtils.success(spaceLevelList, "成功获取空间级别列表");
+    }
+
     @PostMapping("/add")
+
     public BaseResponse<Long> addSpace(@RequestBody SpaceAddRequest spaceAddRequest, HttpServletRequest req) {
         ThrowUtils.throwIf(spaceAddRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         User loginUser = userService.getLoginUser(req);
@@ -57,7 +69,7 @@ public class SpaceController {
         Space spaceFromDb = spaceService.getById(id);
         ThrowUtils.throwIf(spaceFromDb == null, ErrorCode.NOT_FOUND_ERROR, "删除空间不存在");
         User loginUser = userService.getLoginUser(req);
-        if (!spaceService.hasWritePermission(spaceFromDb, loginUser)) {
+        if (!spaceService.checkSpaceAuth(spaceFromDb, loginUser)) {
             throw new BusinessException(ErrorCode.NOT_AUTH_ERROR, "用户无权限删除空间");
         }
         boolean res = spaceService.removeById(id);
@@ -98,9 +110,7 @@ public class SpaceController {
         Space spaceFromDb = spaceService.getById(id);
         ThrowUtils.throwIf(spaceFromDb == null, ErrorCode.NOT_FOUND_ERROR, "编辑空间不存在");
         User loginUser = userService.getLoginUser(req);
-        if (!spaceService.hasWritePermission(spaceFromDb, loginUser)) {
-            throw new BusinessException(ErrorCode.NOT_AUTH_ERROR, "用户无权限编辑空间");
-        }
+        ThrowUtils.throwIf(spaceService.checkSpaceAuth(space, loginUser), ErrorCode.NOT_AUTH_ERROR, "用户无权限编辑空间");
         boolean res = spaceService.updateById(space);
         ThrowUtils.throwIf(!res, ErrorCode.OPERATION_ERROR, "数据库编辑空间失败");
         return ResultUtils.success(space.getId(), "成功编辑空间");

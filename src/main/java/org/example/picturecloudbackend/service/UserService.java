@@ -16,37 +16,13 @@ import java.util.List;
  * @createDate 2025-12-23 17:39:51
  */
 public interface UserService extends IService<User> {
-    /**
-     * 用户注册
-     * @param userAccount
-     * @param userPassword
-     * @param checkPassword
-     * @return
-     */
-    long userRegister(String userAccount, String userPassword, String checkPassword);
 
     /**
-     * 用户登录
-     * @param userAccount
-     * @param userPassword
+     * 判断用户是否为管理员
+     * @param user
      * @return
      */
-    LoginUserVO userLogin(String userAccount, String userPassword, HttpServletRequest req);
-
-    /**
-     * 获取登录用户
-     * @param req
-     * @return
-     */
-    User getLoginUser(HttpServletRequest req);
-
-
-    /**
-     * 用户注销
-     * @param req
-     * @return
-     */
-    Boolean userLogout(HttpServletRequest req);
+    boolean isAdmin(User user);
 
     /**
      * 密码加密
@@ -54,6 +30,13 @@ public interface UserService extends IService<User> {
      * @return
      */
     String getEncryptPassword(String userPassword);
+
+    /**
+     * 获取登录用户
+     * @param req
+     * @return
+     */
+    User getLoginUser(HttpServletRequest req);
 
     /**
      * 获取登录用户脱敏信息
@@ -82,11 +65,30 @@ public interface UserService extends IService<User> {
      * @return
      */
     QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest);
+    /*=========================公共模块=============================*/
 
     /**
-     * 判断用户是否为管理员
-     * @param user
+     * 用户注册
+     * @param userAccount
+     * @param userPassword
+     * @param checkPassword
      * @return
      */
-    boolean isAdmin(User user);
+    long userRegister(String userAccount, String userPassword, String checkPassword);
+
+    /**
+     * 用户登录
+     * @param userAccount
+     * @param userPassword
+     * @return
+     */
+    LoginUserVO userLogin(String userAccount, String userPassword, HttpServletRequest req);
+
+
+    /**
+     * 用户注销
+     * @param req
+     * @return
+     */
+    Boolean userLogout(HttpServletRequest req);
 }

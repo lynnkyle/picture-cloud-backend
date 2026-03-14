@@ -53,12 +53,6 @@ public class UserController {
         return ResultUtils.success(loginUserVO, "用户登录成功");
     }
 
-    @GetMapping("/get/login")
-    public BaseResponse<LoginUserVO> getLoginUser(HttpServletRequest req) {
-        User loginUser = userService.getLoginUser(req);
-        return ResultUtils.success(userService.getLoginUserVO(loginUser), "成功获取当前用户");
-    }
-
     @PostMapping("/logout")
     public BaseResponse<Boolean> userLogout(HttpServletRequest req) {
         boolean logout = userService.userLogout(req);
@@ -75,6 +69,34 @@ public class UserController {
         boolean res = userService.save(user);
         ThrowUtils.throwIf(!res, ErrorCode.OPERATION_ERROR, "数据库插入用户失败");
         return ResultUtils.success(user.getId(), "成功添加用户");
+    }
+
+    @PostMapping("/delete")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> deleteUser(@RequestBody DeleteRequest deleteRequest) {
+        ThrowUtils.throwIf(deleteRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
+        Long id = deleteRequest.getId();
+        ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR, "请求用户id为空");
+        boolean res = userService.removeById(id);
+        ThrowUtils.throwIf(!res, ErrorCode.OPERATION_ERROR, "数据库删除用户失败");
+        return ResultUtils.success(res, "成功获取用户");
+    }
+
+    @PostMapping("/update")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Long> updateUser(@RequestBody UserUpdateRequest userUpdateRequest) {
+        ThrowUtils.throwIf(userUpdateRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
+        User user = new User();
+        BeanUtil.copyProperties(userUpdateRequest, user);
+        boolean res = userService.updateById(user);
+        ThrowUtils.throwIf(!res, ErrorCode.OPERATION_ERROR, "数据库更新用户失败");
+        return ResultUtils.success(user.getId(), "成功更新用户");
+    }
+
+    @GetMapping("/get/login")
+    public BaseResponse<LoginUserVO> getLoginUser(HttpServletRequest req) {
+        User loginUser = userService.getLoginUser(req);
+        return ResultUtils.success(userService.getLoginUserVO(loginUser), "成功获取当前用户");
     }
 
     /**
@@ -106,28 +128,6 @@ public class UserController {
         UserVO userVO = userService.getUserVO(userFromDb);
         ThrowUtils.throwIf(userVO == null, ErrorCode.NOT_FOUND_ERROR, "用户不存在");
         return ResultUtils.success(userVO, "成功获取用户");
-    }
-
-    @PostMapping("/delete")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Boolean> deleteUser(@RequestBody DeleteRequest deleteRequest) {
-        ThrowUtils.throwIf(deleteRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
-        Long id = deleteRequest.getId();
-        ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR, "请求用户id为空");
-        boolean res = userService.removeById(id);
-        ThrowUtils.throwIf(!res, ErrorCode.OPERATION_ERROR, "数据库删除用户失败");
-        return ResultUtils.success(res, "成功获取用户");
-    }
-
-    @PostMapping("/update")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Long> updateUser(@RequestBody UserUpdateRequest userUpdateRequest) {
-        ThrowUtils.throwIf(userUpdateRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
-        User user = new User();
-        BeanUtil.copyProperties(userUpdateRequest, user);
-        boolean res = userService.updateById(user);
-        ThrowUtils.throwIf(!res, ErrorCode.OPERATION_ERROR, "数据库更新用户失败");
-        return ResultUtils.success(user.getId(), "成功更新用户");
     }
 
     @PostMapping("/list/page/vo")

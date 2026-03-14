@@ -38,6 +38,125 @@ import java.util.stream.Collectors;
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
     /**
+     * 判断用户是否是管理员
+     *
+     * @param user
+     * @return
+     */
+    @Override
+    public boolean isAdmin(User user) {
+        return user != null && Objects.equals(user.getUserRole(), UserRoleEnum.ADMIN.getValue());
+    }
+
+    /**
+     * 密码加密
+     *
+     * @param userPassword
+     * @return
+     */
+    @Override
+    public String getEncryptPassword(String userPassword) {
+        return DigestUtils.md5DigestAsHex((UserConstant.MD5_SALT + userPassword).getBytes());
+    }
+
+    /**
+     * 获取当前登录用户
+     *
+     * @param req
+     * @return
+     */
+    @Override
+    public User getLoginUser(HttpServletRequest req) {
+        // 1.判断是否已经登录
+        User currentUser = (User) req.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
+        ThrowUtils.throwIf(currentUser == null || currentUser.getId() == null, ErrorCode.NOT_LOGIN_ERROR, "用户未登录");
+        // 2.从数据库中查询 (追求性能可以注释, 返回上述结果)
+        Long userId = currentUser.getId();
+        currentUser = this.getById(userId);
+        ThrowUtils.throwIf(currentUser == null, ErrorCode.NOT_LOGIN_ERROR, "用户未登录");
+        return currentUser;
+    }
+
+    /**
+     * 获取登录用户脱敏信息
+     *
+     * @param userFromDb
+     * @return
+     */
+    @Override
+    public LoginUserVO getLoginUserVO(User userFromDb) {
+        if (userFromDb == null) {
+            return null;
+        }
+        LoginUserVO loginUserVO = new LoginUserVO();
+        BeanUtil.copyProperties(userFromDb, loginUserVO);
+        return loginUserVO;
+    }
+
+    /**
+     * 获取用户脱敏信息
+     *
+     * @param userFromDb
+     * @return
+     */
+    @Override
+    public UserVO getUserVO(User userFromDb) {
+        if (userFromDb == null) {
+            return null;
+        }
+        UserVO userVO = new UserVO();
+        BeanUtil.copyProperties(userFromDb, userVO);
+        return userVO;
+    }
+
+    /**
+     * 获取用户脱敏信息列表
+     * @param userFromDbList
+     * @return
+     */
+    @Override
+    public List<UserVO> getUserVOList(List<User> userFromDbList) {
+        if (CollectionUtil.isEmpty(userFromDbList)) {
+            return new ArrayList<>();
+        }
+        return userFromDbList.stream().map(this::getUserVO).collect(Collectors.toList());
+    }
+
+    /**
+     * 获取查询用户
+     *
+     * @param userQueryRequest
+     * @return
+     */
+    @Override
+    public QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        if (userQueryRequest == null) {
+            return queryWrapper;
+        }
+        Long id = userQueryRequest.getId();
+        String userName = userQueryRequest.getUserName();
+        String userAccount = userQueryRequest.getUserAccount();
+        String userProfile = userQueryRequest.getUserProfile();
+        String userRole = userQueryRequest.getUserRole();
+        String searchText = userQueryRequest.getSearchText();
+        String sortField = userQueryRequest.getSortField();
+        String sortOrder = userQueryRequest.getSortOrder();
+        if (StringUtils.isNotBlank(searchText)) {
+            queryWrapper.and(qw -> qw.like("user_name", searchText).or().like("user_profile", searchText));
+        }
+        queryWrapper.eq(ObjUtil.isNotEmpty(id), "id", id);
+        queryWrapper.eq(StrUtil.isNotBlank(userRole), "user_role", userRole);
+        queryWrapper.like(StrUtil.isNotBlank(userName), "user_name", userName);
+        queryWrapper.like(StrUtil.isNotBlank(userAccount), "user_account", userAccount);
+        queryWrapper.like(StrUtil.isNotBlank(userProfile), "user_profile", userProfile);
+        Optional<String> optionalField = Optional.ofNullable(sortField).map(StringUtils::camelToUnderline);
+        optionalField.ifPresent(s -> queryWrapper.orderBy(StrUtil.isNotBlank(s), sortOrder.equals("ascend"), s));
+        return queryWrapper;
+    }
+    /*=========================公共模块=============================*/
+
+    /**
      * 用户注册
      *
      * @param userAccount
@@ -110,23 +229,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     /**
-     * 获取当前登录用户
-     *
+     * 用户注销
      * @param req
      * @return
      */
-    @Override
-    public User getLoginUser(HttpServletRequest req) {
-        // 1.判断是否已经登录
-        User currentUser = (User) req.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
-        ThrowUtils.throwIf(currentUser == null || currentUser.getId() == null, ErrorCode.NOT_LOGIN_ERROR, "用户未登录");
-        // 2.从数据库中查询 (追求性能可以注释, 返回上述结果)
-        Long userId = currentUser.getId();
-        currentUser = this.getById(userId);
-        ThrowUtils.throwIf(currentUser == null, ErrorCode.NOT_LOGIN_ERROR, "用户未登录");
-        return currentUser;
-    }
-
     @Override
     public Boolean userLogout(HttpServletRequest req) {
         // 1.判断是否已经登录
@@ -135,101 +241,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 2.移除登录态
         req.getSession().removeAttribute(UserConstant.USER_LOGIN_STATE);
         return true;
-    }
-
-    /**
-     * 密码加密
-     *
-     * @param userPassword
-     * @return
-     */
-    @Override
-    public String getEncryptPassword(String userPassword) {
-        return DigestUtils.md5DigestAsHex((UserConstant.MD5_SALT + userPassword).getBytes());
-    }
-
-    /**
-     * 获取登录用户脱敏信息
-     *
-     * @param userFromDb
-     * @return
-     */
-    @Override
-    public LoginUserVO getLoginUserVO(User userFromDb) {
-        if (userFromDb == null) {
-            return null;
-        }
-        LoginUserVO loginUserVO = new LoginUserVO();
-        BeanUtil.copyProperties(userFromDb, loginUserVO);
-        return loginUserVO;
-    }
-
-    /**
-     * 获取用户脱敏信息
-     *
-     * @param userFromDb
-     * @return
-     */
-    @Override
-    public UserVO getUserVO(User userFromDb) {
-        if (userFromDb == null) {
-            return null;
-        }
-        UserVO userVO = new UserVO();
-        BeanUtil.copyProperties(userFromDb, userVO);
-        return userVO;
-    }
-
-    @Override
-    public List<UserVO> getUserVOList(List<User> userFromDbList) {
-        if (CollectionUtil.isEmpty(userFromDbList)) {
-            return new ArrayList<>();
-        }
-        return userFromDbList.stream().map(this::getUserVO).collect(Collectors.toList());
-    }
-
-    /**
-     * 获取查询用户
-     *
-     * @param userQueryRequest
-     * @return
-     */
-    @Override
-    public QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest) {
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        if (userQueryRequest == null) {
-            return queryWrapper;
-        }
-        Long id = userQueryRequest.getId();
-        String userName = userQueryRequest.getUserName();
-        String userAccount = userQueryRequest.getUserAccount();
-        String userProfile = userQueryRequest.getUserProfile();
-        String userRole = userQueryRequest.getUserRole();
-        String searchText = userQueryRequest.getSearchText();
-        String sortField = userQueryRequest.getSortField();
-        String sortOrder = userQueryRequest.getSortOrder();
-        if (StringUtils.isNotBlank(searchText)) {
-            queryWrapper.and(qw -> qw.like("user_name", searchText).or().like("user_profile", searchText));
-        }
-        queryWrapper.eq(ObjUtil.isNotEmpty(id), "id", id);
-        queryWrapper.eq(StrUtil.isNotBlank(userRole), "user_role", userRole);
-        queryWrapper.like(StrUtil.isNotBlank(userName), "user_name", userName);
-        queryWrapper.like(StrUtil.isNotBlank(userAccount), "user_account", userAccount);
-        queryWrapper.like(StrUtil.isNotBlank(userProfile), "user_profile", userProfile);
-        Optional<String> optionalField = Optional.ofNullable(sortField).map(StringUtils::camelToUnderline);
-        optionalField.ifPresent(s -> queryWrapper.orderBy(StrUtil.isNotBlank(s), sortOrder.equals("ascend"), s));
-        return queryWrapper;
-    }
-
-    /**
-     * 判断用户是否是管理员
-     *
-     * @param user
-     * @return
-     */
-    @Override
-    public boolean isAdmin(User user) {
-        return user != null && Objects.equals(user.getUserRole(), UserRoleEnum.ADMIN.getValue());
     }
 }
 

@@ -12,15 +12,16 @@ import org.example.picturecloudbackend.common.ResultUtils;
 import org.example.picturecloudbackend.constant.CacheConstant;
 import org.example.picturecloudbackend.constant.UserConstant;
 import org.example.picturecloudbackend.enums.PictureReviewStatusEnum;
-import org.example.picturecloudbackend.exception.BusinessException;
 import org.example.picturecloudbackend.exception.ErrorCode;
 import org.example.picturecloudbackend.exception.ThrowUtils;
 import org.example.picturecloudbackend.model.dto.picture.*;
 import org.example.picturecloudbackend.model.entity.Picture;
+import org.example.picturecloudbackend.model.entity.Space;
 import org.example.picturecloudbackend.model.entity.User;
 import org.example.picturecloudbackend.model.vo.picture.PictureTagCategory;
 import org.example.picturecloudbackend.model.vo.picture.PictureVO;
 import org.example.picturecloudbackend.service.PictureService;
+import org.example.picturecloudbackend.service.SpaceService;
 import org.example.picturecloudbackend.service.UserService;
 import org.example.picturecloudbackend.service.cache.PictureCache;
 import org.example.picturecloudbackend.service.cache.PicturePageCache;
@@ -43,12 +44,13 @@ public class PictureController {
     @Resource
     private PictureService pictureService;
     @Resource
+    private SpaceService spaceService;
+    @Resource
     private PicturePageCache picturePageCache;
     @Autowired
     private PictureCache pictureCache;
 
     @GetMapping("/tag_category")
-
     public BaseResponse<PictureTagCategory> listPictureCategoryTag() {
         PictureTagCategory pictureTagCategory = new PictureTagCategory();
         List<String> categoryList = Arrays.asList("模板", "电商", "表情包", "素材", "海报");
@@ -75,6 +77,21 @@ public class PictureController {
         return ResultUtils.success(pictureVO, "成功上传图片");
     }
 
+    @PostMapping("/upload/batch")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Integer> uploadPictureByBatch(@RequestBody PictureUploadByBatchRequest pictureUploadByBatchRequest, HttpServletRequest req) {
+        ThrowUtils.throwIf(pictureUploadByBatchRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
+        User loginUser = userService.getLoginUser(req);
+        Integer successCount = pictureService.uploadPictureByBatch(pictureUploadByBatchRequest, loginUser);
+        return ResultUtils.success(successCount, String.format("图片批量上传成功，批量大小为%d", successCount));
+    }
+
+    @PostMapping("/delete")
+    public BaseResponse<Boolean> deletePicture(@RequestBody DeleteRequest deleteRequest, HttpServletRequest req) {
+        ThrowUtils.throwIf(deleteRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
+        Boolean res = pictureService.deletePicture(deleteRequest, req);
+        return ResultUtils.success(res, "成功删除图片");
+    }
 
     @PostMapping("/update")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -99,6 +116,22 @@ public class PictureController {
         return ResultUtils.success(picture.getId(), "成功更新图片");
     }
 
+    @PostMapping("/edit")
+    public BaseResponse<Long> editPicture(@RequestBody PictureEditRequest pictureEditRequest, HttpServletRequest req) {
+        ThrowUtils.throwIf(pictureEditRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
+        Long pictureId = pictureService.editPicture(pictureEditRequest, req);
+        return ResultUtils.success(pictureId, "成功编辑图片");
+    }
+
+    @PostMapping("/review")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> doPictureReview(@RequestBody PictureReviewerRequest pictureReviewerRequest, HttpServletRequest req) {
+        ThrowUtils.throwIf(pictureReviewerRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
+        User loginUser = userService.getLoginUser(req);
+        boolean res = pictureService.doPictureReview(pictureReviewerRequest, loginUser);
+        return ResultUtils.success(res, "图片审核完成");
+    }
+
     @GetMapping("/get")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Picture> getPictureById(Long id) {
@@ -109,11 +142,16 @@ public class PictureController {
     }
 
     @GetMapping("/get/vo")
-    public BaseResponse<PictureVO> getPictureVOById(Long id) {
+    public BaseResponse<PictureVO> getPictureVOById(Long id, HttpServletRequest req) {
         ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         Picture picture = pictureService.getById(id);
-        PictureVO pictureVO = pictureService.getPictureVO(picture);
         ThrowUtils.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR, "获取图片不存在");
+        Long spaceId = picture.getSpaceId();
+        if (spaceId != null) {
+            User loginUser = userService.getLoginUser(req);
+            pictureService.checkPictureAuth(loginUser, picture);
+        }
+        PictureVO pictureVO = pictureService.getPictureVO(picture);
         return ResultUtils.success(pictureVO, "成功获取图片");
     }
 
@@ -134,9 +172,21 @@ public class PictureController {
         ThrowUtils.throwIf(pictureQueryRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         int current = pictureQueryRequest.getCurrent();
         int size = pictureQueryRequest.getPageSize();
+        // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR, "获取图片页面大小过大");
-        // 普通用户只能看到审核通过数据
-        pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+        // 判断空间权限
+        Long spaceId = pictureQueryRequest.getSpaceId();
+        if (spaceId == null) {
+            // 公共图库
+            pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+        } else {
+            // 私有图库
+            User loginUser = userService.getLoginUser(req);
+            Space space = spaceService.getById(spaceId);
+            ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+            ThrowUtils.throwIf(spaceService.checkSpaceAuth(space, loginUser), ErrorCode.NOT_AUTH_ERROR, "用户无权限编辑空间");
+            pictureQueryRequest.setSpaceId(spaceId);
+        }
         QueryWrapper<Picture> queryWrapper = pictureService.getQueryWrapper(pictureQueryRequest);
         IPage<Picture> picturePage = pictureService.page(new Page<>(current, size), queryWrapper);
         IPage<PictureVO> pictureVOPage = pictureService.getPictureVOPage(picturePage);
@@ -186,49 +236,4 @@ public class PictureController {
         return ResultUtils.success(pictureVOPage, "成功获取图片列表");
     }
 
-    @PostMapping("/edit")
-    public BaseResponse<Long> editPicture(@RequestBody PictureEditRequest pictureEditRequest, HttpServletRequest req) {
-        ThrowUtils.throwIf(pictureEditRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
-        Picture picture = new Picture();
-        BeanUtil.copyProperties(pictureEditRequest, picture);
-        picture.setPicTags(JSONUtil.toJsonStr(pictureEditRequest.getPicTags()));
-        picture.setEditTime(new Date());
-        pictureService.validPicture(picture);
-        Long id = pictureEditRequest.getId();
-        Picture pictureFromDb = pictureService.getById(id);
-        ThrowUtils.throwIf(pictureFromDb == null, ErrorCode.NOT_FOUND_ERROR, "编辑图片不存在");
-        User loginUser = userService.getLoginUser(req);
-        if (!pictureService.hasWritePermission(pictureFromDb, loginUser)) {
-            throw new BusinessException(ErrorCode.NOT_AUTH_ERROR, "用户无权限编辑图片");
-        }
-        pictureService.fillReviewParams(picture, loginUser);
-        boolean res = pictureService.updateById(picture);
-        ThrowUtils.throwIf(!res, ErrorCode.OPERATION_ERROR, "数据库编辑图片失败");
-        return ResultUtils.success(picture.getId(), "成功编辑图片");
-    }
-
-    @PostMapping("/delete")
-    public BaseResponse<Boolean> deletePicture(@RequestBody DeleteRequest deleteRequest, HttpServletRequest req) {
-        ThrowUtils.throwIf(deleteRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
-        Boolean res = pictureService.deletePicture(deleteRequest, req);
-        return ResultUtils.success(res, "成功删除图片");
-    }
-
-    @PostMapping("/review")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Boolean> doPictureReview(@RequestBody PictureReviewerRequest pictureReviewerRequest, HttpServletRequest req) {
-        ThrowUtils.throwIf(pictureReviewerRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
-        User loginUser = userService.getLoginUser(req);
-        boolean res = pictureService.doPictureReview(pictureReviewerRequest, loginUser);
-        return ResultUtils.success(res, "图片审核完成");
-    }
-
-    @PostMapping("/upload/batch")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Integer> uploadPictureByBatch(@RequestBody PictureUploadByBatchRequest pictureUploadByBatchRequest, HttpServletRequest req) {
-        ThrowUtils.throwIf(pictureUploadByBatchRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
-        User loginUser = userService.getLoginUser(req);
-        Integer successCount = pictureService.uploadPictureByBatch(pictureUploadByBatchRequest, loginUser);
-        return ResultUtils.success(successCount, String.format("图片批量上传成功，批量大小为%d", successCount));
-    }
 }
