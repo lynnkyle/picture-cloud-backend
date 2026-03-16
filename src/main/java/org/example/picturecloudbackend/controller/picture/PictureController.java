@@ -100,6 +100,7 @@ public class PictureController {
         ThrowUtils.throwIf(pictureUpdateRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         Long id = pictureUpdateRequest.getId();
         ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR, "更新图片id为空");
+        Long spaceId = pictureUpdateRequest.getSpaceId();
         // 2.转换实体类为dto
         Picture picture = new Picture();
         BeanUtil.copyProperties(pictureUpdateRequest, picture);
@@ -108,6 +109,8 @@ public class PictureController {
         pictureService.validPicture(picture);
         Picture pictureFromDb = pictureService.getById(id);
         ThrowUtils.throwIf(pictureFromDb == null, ErrorCode.NOT_FOUND_ERROR, "更新图片不存在");
+        Long spaceIdFromDb = pictureFromDb.getSpaceId();
+        ThrowUtils.throwIf(spaceId != null && spaceId != spaceIdFromDb, ErrorCode.PARAMS_ERROR, "更新图片不存在");
         User loginUser = userService.getLoginUser(req);
         pictureService.fillReviewParams(picture, loginUser);
         // 3.操作数据库

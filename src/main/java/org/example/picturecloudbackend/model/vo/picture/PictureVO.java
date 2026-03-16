@@ -74,6 +74,11 @@ public class PictureVO implements Serializable {
     private String picFormat;
 
     /**
+     * 图片权限
+     */
+    private Integer picStatus;
+
+    /**
      * 创建用户id
      */
     private Long userId;
@@ -81,7 +86,7 @@ public class PictureVO implements Serializable {
     /**
      * 空间id
      */
-    private Long pictureId;
+    private Long spaceId;
 
     /**
      * 创建用户

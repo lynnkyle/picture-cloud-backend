@@ -36,6 +36,11 @@ public class PictureEditRequest implements Serializable {
     private String picCategory;
 
     /**
+     * 图片权限
+     */
+    private Integer picStatus;
+
+    /**
      * 图片标签（JSON 数组）
      */
     private List<String> picTags;

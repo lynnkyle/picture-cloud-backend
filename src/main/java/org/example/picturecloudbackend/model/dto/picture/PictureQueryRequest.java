@@ -63,6 +63,11 @@ public class PictureQueryRequest extends PageRequest implements Serializable {
     private String picFormat;
 
     /**
+     * 图片状态
+     */
+    private Integer picStatus;
+
+    /**
      * 创建用户id
      */
     private Long userId;
@@ -97,4 +102,13 @@ public class PictureQueryRequest extends PageRequest implements Serializable {
      */
     private Date ReviewTime;
 
+    /**
+     * 开始编辑时间
+     */
+    private Date startEditTime;
+
+    /**
+     * 结束编辑时间
+     */
+    private Date endEditTime;
 }

@@ -18,7 +18,7 @@ import java.util.List;
 
 @Data
 public class PictureUpdateRequest implements Serializable {
-    
+
     private static final long serialVersionUID = -7205978866443687452L;
     /**
      * 图片id
@@ -39,6 +39,16 @@ public class PictureUpdateRequest implements Serializable {
      * 图片分类
      */
     private String picCategory;
+
+    /**
+     * 空间id
+     */
+    private Long spaceId;
+
+    /**
+     * 图片权限
+     */
+    private Integer picStatus;
 
     /**
      * 图片标签（JSON 数组）

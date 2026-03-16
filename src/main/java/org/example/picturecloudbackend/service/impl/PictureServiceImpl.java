@@ -180,6 +180,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         Integer reviewStatus = pictureQueryRequest.getReviewStatus();
         String reviewMessage = pictureQueryRequest.getReviewMessage();
         Long reviewerId = pictureQueryRequest.getReviewerId();
+        Date startEditTime = pictureQueryRequest.getStartEditTime();
+        Date endEditTime = pictureQueryRequest.getEndEditTime();
         String sortField = pictureQueryRequest.getSortField();
         String sortOrder = pictureQueryRequest.getSortOrder();
         if (StringUtils.isNotBlank(searchText)) {
@@ -205,6 +207,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
                 queryWrapper.like("pic_tags", "\"" + tag + "\"");
             }
         }
+        queryWrapper.ge(ObjUtil.isNotEmpty(startEditTime), "edit_time", startEditTime);
+        queryWrapper.le(ObjUtil.isNotEmpty(endEditTime), "edit_time", endEditTime);
         Optional<String> optionalField = Optional.ofNullable(sortField).map(StringUtils::camelToUnderline);
         optionalField.ifPresent(s -> queryWrapper.orderBy(StrUtil.isNotBlank(s), sortOrder.equals("ascend"), s));
         return queryWrapper;
@@ -284,11 +288,13 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             boolean pictureRes = this.saveOrUpdate(picture);
             ThrowUtils.throwIf(!pictureRes, ErrorCode.OPERATION_ERROR, "数据库保存图片失败");
             // 更新空间额度记录
-            boolean spaceRes = spaceService.lambdaUpdate().eq(Space::getId, finalSpaceId)
-                    .setSql("totalSize = totalSize + " + picture.getPicSize())
-                    .setSql("totalCount = totalCount + 1")
-                    .update();
-            ThrowUtils.throwIf(!spaceRes, ErrorCode.OPERATION_ERROR, "数据库更新空间失败");
+            if (finalSpaceId != null) {
+                boolean spaceRes = spaceService.lambdaUpdate().eq(Space::getId, finalSpaceId)
+                        .setSql("total_size = total_size + " + picture.getPicSize())
+                        .setSql("total_count = total_count + 1")
+                        .update();
+                ThrowUtils.throwIf(!spaceRes, ErrorCode.OPERATION_ERROR, "数据库更新空间失败");
+            }
             return true;
         });
         if (pictureFromDb != null) {
@@ -372,23 +378,21 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         User loginUser = userService.getLoginUser(req);
         // 校验权限
         checkPictureAuth(loginUser, pictureFromDb);
-        boolean res = removeById(id);
         transactionTemplate.execute(status -> {
             // 删除图片记录
             boolean pictureRes = removeById(id);
             ThrowUtils.throwIf(!pictureRes, ErrorCode.OPERATION_ERROR, "数据库保存图片失败");
             // 更新空间额度记录
             boolean spaceRes = spaceService.lambdaUpdate().eq(Space::getId, pictureFromDb.getSpaceId())
-                    .setSql("totalSize = totalSize - " + pictureFromDb.getPicSize())
-                    .setSql("totalCount = totalCount - 1")
+                    .setSql("total_size = total_size - " + pictureFromDb.getPicSize())
+                    .setSql("total_count = total_count - 1")
                     .update();
             ThrowUtils.throwIf(!spaceRes, ErrorCode.OPERATION_ERROR, "数据库更新空间失败");
             return true;
         });
         // 清理图片资源
         clearPictureFile(pictureFromDb);
-        ThrowUtils.throwIf(!res, ErrorCode.OPERATION_ERROR, "数据库删除图片失败");
-        return res;
+        return true;
     }
 
     /**
