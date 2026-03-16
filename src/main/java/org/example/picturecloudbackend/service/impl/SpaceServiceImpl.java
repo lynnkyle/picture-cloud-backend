@@ -110,7 +110,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         String sortField = spaceQueryRequest.getSortField();
         String sortOrder = spaceQueryRequest.getSortOrder();
         queryWrapper.eq(ObjUtil.isNotEmpty(id), "id", id);
-        queryWrapper.like(StrUtil.isNotBlank(spaceName), "pic_name", spaceName);
+        queryWrapper.like(StrUtil.isNotBlank(spaceName), "space_name", spaceName);
         queryWrapper.eq(ObjUtil.isNotEmpty(userId), "user_id", userId);
         queryWrapper.eq(ObjUtil.isNotEmpty(spaceLevel), "space_level", spaceLevel);
         Optional<String> optionalField = Optional.ofNullable(sortField).map(StringUtils::camelToUnderline);
@@ -156,7 +156,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
                 ThrowUtils.throwIf(exists, ErrorCode.OPERATION_ERROR, "一个用户只能创建一个空间");
                 // 创建空间
                 boolean res = this.save(space);
-                ThrowUtils.throwIf(res, ErrorCode.OPERATION_ERROR, "数据库插入空间失败");
+                ThrowUtils.throwIf(!res, ErrorCode.OPERATION_ERROR, "数据库插入空间失败");
                 return space.getId();
             });
             return spaceId;

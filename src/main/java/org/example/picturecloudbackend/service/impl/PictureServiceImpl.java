@@ -285,8 +285,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             ThrowUtils.throwIf(!pictureRes, ErrorCode.OPERATION_ERROR, "数据库保存图片失败");
             // 更新空间额度记录
             boolean spaceRes = spaceService.lambdaUpdate().eq(Space::getId, finalSpaceId)
-                    .setSql("totalSize = totalSize + " + picture.getPicSize())
-                    .setSql("totalCount = totalCount + 1")
+                    .setSql("total_size = total_size + " + picture.getPicSize())
+                    .setSql("total_count = total_count + 1")
                     .update();
             ThrowUtils.throwIf(!spaceRes, ErrorCode.OPERATION_ERROR, "数据库更新空间失败");
             return true;
@@ -379,8 +379,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             ThrowUtils.throwIf(!pictureRes, ErrorCode.OPERATION_ERROR, "数据库保存图片失败");
             // 更新空间额度记录
             boolean spaceRes = spaceService.lambdaUpdate().eq(Space::getId, pictureFromDb.getSpaceId())
-                    .setSql("totalSize = totalSize - " + pictureFromDb.getPicSize())
-                    .setSql("totalCount = totalCount - 1")
+                    .setSql("total_size = total_size - " + pictureFromDb.getPicSize())
+                    .setSql("total_count = total_count - 1")
                     .update();
             ThrowUtils.throwIf(!spaceRes, ErrorCode.OPERATION_ERROR, "数据库更新空间失败");
             return true;

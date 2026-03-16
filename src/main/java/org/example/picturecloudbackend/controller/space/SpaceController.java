@@ -53,7 +53,6 @@ public class SpaceController {
     }
 
     @PostMapping("/add")
-
     public BaseResponse<Long> addSpace(@RequestBody SpaceAddRequest spaceAddRequest, HttpServletRequest req) {
         ThrowUtils.throwIf(spaceAddRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         User loginUser = userService.getLoginUser(req);
