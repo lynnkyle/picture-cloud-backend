@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties(prefix = "cos.client")
+@ConfigurationProperties(prefix = "tencent.cloud.cos.client")
 @Data
 public class CosClientConfig {
     // 域名
