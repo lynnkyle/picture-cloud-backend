@@ -6,6 +6,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.example.picturecloudbackend.annotation.AuthCheck;
+import org.example.picturecloudbackend.api.aliyun.AlibabaCloudApi;
+import org.example.picturecloudbackend.api.aliyun.model.CreateImageOutPaintingTaskResponse;
+import org.example.picturecloudbackend.api.aliyun.model.GetImageOutPaintingTaskResponse;
 import org.example.picturecloudbackend.common.BaseResponse;
 import org.example.picturecloudbackend.common.DeleteRequest;
 import org.example.picturecloudbackend.common.ResultUtils;
@@ -49,6 +52,8 @@ public class PictureController {
     private PicturePageCache picturePageCache;
     @Autowired
     private PictureCache pictureCache;
+    @Autowired
+    private AlibabaCloudApi alibabaCloudApi;
 
     @GetMapping("/tag_category")
     public BaseResponse<PictureTagCategory> listPictureCategoryTag() {
@@ -237,6 +242,21 @@ public class PictureController {
         // 查询缓存
         IPage<PictureVO> pictureVOPage = picturePageCache.listPictureVOByPage(pictureQueryRequest);
         return ResultUtils.success(pictureVOPage, "成功获取图片列表");
+    }
+
+    @PostMapping("/out_painting/create_task")
+    public BaseResponse<CreateImageOutPaintingTaskResponse> createPictureOutPaintingTask(PictureCreateOutPaintingTaskRequest pictureCreateOutPaintingTaskRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(pictureCreateOutPaintingTaskRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
+        User loginUser = userService.getLoginUser(request);
+        CreateImageOutPaintingTaskResponse resp = pictureService.createPictureOutPaintingTask(pictureCreateOutPaintingTaskRequest, loginUser);
+        return ResultUtils.success(resp, "成功创建括图任务");
+    }
+
+    @PostMapping("/out_painting/get_task")
+    public BaseResponse<GetImageOutPaintingTaskResponse> getPictureOutPaintingTask(String taskId, HttpServletRequest request) {
+        ThrowUtils.throwIf(taskId == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
+        GetImageOutPaintingTaskResponse resp = alibabaCloudApi.getImageOutPaintingTask(taskId);
+        return ResultUtils.success(resp, "成功获取扩图图片");
     }
 
 }

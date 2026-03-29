@@ -15,12 +15,7 @@ public class CreateImageOutPaintingTaskResponse {
     @Alias("request_id")
     private String requestId;
 
-    private Output output = new Output();
-
-    // 错误码
-    private String code;
-    // 错误信息
-    private String message;
+    private Output output;
 
     @Data
     @Builder
@@ -33,5 +28,9 @@ public class CreateImageOutPaintingTaskResponse {
 
         @Alias("task_id")
         private String taskId;
+        // 错误码
+        private String code;
+        // 错误信息
+        private String message;
     }
 }

@@ -12,10 +12,12 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
+import org.example.picturecloudbackend.api.aliyun.AlibabaCloudApi;
+import org.example.picturecloudbackend.api.aliyun.model.CreateImageOutPaintingTaskRequest;
+import org.example.picturecloudbackend.api.aliyun.model.CreateImageOutPaintingTaskResponse;
 import org.example.picturecloudbackend.common.DeleteRequest;
 import org.example.picturecloudbackend.constant.UploadConstant;
 import org.example.picturecloudbackend.enums.PictureReviewStatusEnum;
-import org.example.picturecloudbackend.enums.SpaceLevelEnum;
 import org.example.picturecloudbackend.exception.BusinessException;
 import org.example.picturecloudbackend.exception.ErrorCode;
 import org.example.picturecloudbackend.exception.ThrowUtils;
@@ -76,6 +78,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
 
     @Resource
     private TransactionTemplate transactionTemplate;
+
+    @Resource
+    private AlibabaCloudApi alibabaCloudApi;
 
     /**
      * 图片校验(图片修改校验)
@@ -289,10 +294,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             ThrowUtils.throwIf(!pictureRes, ErrorCode.OPERATION_ERROR, "数据库保存图片失败");
             // 更新空间额度记录
             if (finalSpaceId != null) {
-                boolean spaceRes = spaceService.lambdaUpdate().eq(Space::getId, finalSpaceId)
-                        .setSql("total_size = total_size + " + picture.getPicSize())
-                        .setSql("total_count = total_count + 1")
-                        .update();
+                boolean spaceRes = spaceService.lambdaUpdate().eq(Space::getId, finalSpaceId).setSql("total_size = total_size + " + picture.getPicSize()).setSql("total_count = total_count + 1").update();
                 ThrowUtils.throwIf(!spaceRes, ErrorCode.OPERATION_ERROR, "数据库更新空间失败");
             }
             return true;
@@ -383,10 +385,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
             boolean pictureRes = removeById(id);
             ThrowUtils.throwIf(!pictureRes, ErrorCode.OPERATION_ERROR, "数据库保存图片失败");
             // 更新空间额度记录
-            boolean spaceRes = spaceService.lambdaUpdate().eq(Space::getId, pictureFromDb.getSpaceId())
-                    .setSql("total_size = total_size - " + pictureFromDb.getPicSize())
-                    .setSql("total_count = total_count - 1")
-                    .update();
+            boolean spaceRes = spaceService.lambdaUpdate().eq(Space::getId, pictureFromDb.getSpaceId()).setSql("total_size = total_size - " + pictureFromDb.getPicSize()).setSql("total_count = total_count - 1").update();
             ThrowUtils.throwIf(!spaceRes, ErrorCode.OPERATION_ERROR, "数据库更新空间失败");
             return true;
         });
@@ -495,6 +494,30 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         });
         pictureVOPage.setRecords(pictureVOList);
         return pictureVOPage;
+    }
+
+    /**
+     * AI扩图任务
+     * @param req
+     * @param loginUser
+     */
+    @Override
+    public CreateImageOutPaintingTaskResponse createPictureOutPaintingTask(PictureCreateOutPaintingTaskRequest req, User loginUser) {
+        // 获取图片信息
+        Long pictureId = req.getPictureId();
+        ThrowUtils.throwIf(pictureId == null, ErrorCode.PARAMS_ERROR, "图片id为空");
+        Picture picture = this.getById(pictureId);
+        ThrowUtils.throwIf(picture == null, ErrorCode.PARAMS_ERROR, "图片不存在");
+        // 权限校验
+        checkPictureAuth(loginUser, picture);
+        // 图像画面扩展任务
+        CreateImageOutPaintingTaskRequest createImageOutPaintingTaskRequest = new CreateImageOutPaintingTaskRequest();
+        CreateImageOutPaintingTaskRequest.Input input = new CreateImageOutPaintingTaskRequest.Input();
+        input.setImageUrl(picture.getPicUrl());
+        createImageOutPaintingTaskRequest.setInput(input);
+        createImageOutPaintingTaskRequest.setParameters(req.getParameters());
+        CreateImageOutPaintingTaskResponse resp = alibabaCloudApi.createImageOutPaintingTask(createImageOutPaintingTaskRequest);
+        return resp;
     }
 }
 

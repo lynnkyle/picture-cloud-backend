@@ -4,6 +4,8 @@ package org.example.picturecloudbackend.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.example.picturecloudbackend.api.aliyun.model.CreateImageOutPaintingTaskRequest;
+import org.example.picturecloudbackend.api.aliyun.model.CreateImageOutPaintingTaskResponse;
 import org.example.picturecloudbackend.common.BaseResponse;
 import org.example.picturecloudbackend.common.DeleteRequest;
 import org.example.picturecloudbackend.model.dto.picture.*;
@@ -119,6 +121,14 @@ public interface PictureService extends IService<Picture> {
      * @return
      */
     IPage<PictureVO> getPictureVOPage(IPage<Picture> picturePage);
+    /*=========================通用模块(增删改查)=============================*/
 
+    /**
+     * AI扩图任务
+     * @param req
+     * @param loginUser
+     */
+    CreateImageOutPaintingTaskResponse createPictureOutPaintingTask(PictureCreateOutPaintingTaskRequest req, User loginUser);
+    /*=========================AI模块(增删改查)=============================*/
 }
 

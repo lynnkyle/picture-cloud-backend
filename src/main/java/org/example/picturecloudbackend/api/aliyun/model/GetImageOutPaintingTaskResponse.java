@@ -19,11 +19,6 @@ public class GetImageOutPaintingTaskResponse {
 
     private Usage usage;
 
-    // 错误码
-    private String code;
-    // 错误信息
-    private String message;
-
     @Data
     @Builder
     @NoArgsConstructor
@@ -47,6 +42,11 @@ public class GetImageOutPaintingTaskResponse {
 
         @Alias("output_image_url")
         private String outputImageUrl;
+
+        // 错误码
+        private String code;
+        // 错误信息
+        private String message;
     }
 
     @Data
