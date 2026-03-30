@@ -3,6 +3,7 @@ package org.example.picturecloudbackend.api.aliyun;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONUtil;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.example.picturecloudbackend.api.aliyun.model.CreateImageOutPaintingTaskRequest;
 import org.example.picturecloudbackend.api.aliyun.model.CreateImageOutPaintingTaskResponse;
@@ -17,16 +18,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
+@Data
 @Configuration
 @ConfigurationProperties(prefix = "alibaba.cloud.ai")
 public class AlibabaCloudApi {
     // 【安全修复】移除硬编码 Key，请从 application.yml 读取
     private String apiKey;
-
-    // Getter/Setter 必须保留，否则 ConfigurationProperties 不生效
-    public void setApiKey(String apiKey) {
-        this.apiKey = apiKey;
-    }
 
     private static final String CREATE_OUT_PAINTING_URL = "https://dashscope.aliyuncs.com/api/v1/services/aigc/image2image/out-painting";
     private static final String GET_OUT_PAINTING_URL = "https://dashscope.aliyuncs.com/api/v1/tasks/%s";
@@ -74,13 +71,14 @@ public class AlibabaCloudApi {
             if (!httpResponse.isOk()) {
                 throw new BusinessException(ErrorCode.OPERATION_ERROR, "查询任务失败：" + respBody);
             }
-
             GetImageOutPaintingTaskResponse resp = JSONUtil.toBean(respBody, GetImageOutPaintingTaskResponse.class);
             if (resp.getOutput().getCode() != null) {
                 log.error("查询任务业务失败：{}", resp.getOutput().getMessage());
                 throw new BusinessException(ErrorCode.OPERATION_ERROR, "查询任务失败：" + resp.getOutput().getMessage());
             }
             return resp;
+        } catch (BusinessException e) {
+            throw e;
         } catch (Exception e) {
             log.error("查询任务发生异常", e);
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "查询任务异常：" + e.getMessage());

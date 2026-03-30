@@ -32,12 +32,12 @@ public class CreateImageOutPaintingTaskRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Parameters {
-        private Integer angle = 90;
+        private Integer angle;
         @Alias("x_scale")
-        @JsonProperty("x_scale")
-        private Double xScale = 1.5;
+        @JsonProperty("xScale")
+        private Double xScale;
         @Alias("y_scale")
-        @JsonProperty("y_scale")
-        private Double yScale = 1.5;
+        @JsonProperty("yScale")
+        private Double yScale;
     }
 }

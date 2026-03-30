@@ -245,7 +245,7 @@ public class PictureController {
     }
 
     @PostMapping("/out_painting/create_task")
-    public BaseResponse<CreateImageOutPaintingTaskResponse> createPictureOutPaintingTask(PictureCreateOutPaintingTaskRequest pictureCreateOutPaintingTaskRequest, HttpServletRequest request) {
+    public BaseResponse<CreateImageOutPaintingTaskResponse> createPictureOutPaintingTask(@RequestBody PictureCreateOutPaintingTaskRequest pictureCreateOutPaintingTaskRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(pictureCreateOutPaintingTaskRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         User loginUser = userService.getLoginUser(request);
         CreateImageOutPaintingTaskResponse resp = pictureService.createPictureOutPaintingTask(pictureCreateOutPaintingTaskRequest, loginUser);
