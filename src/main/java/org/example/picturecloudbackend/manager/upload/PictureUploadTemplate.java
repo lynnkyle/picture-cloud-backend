@@ -47,7 +47,8 @@ public abstract class PictureUploadTemplate<T> {
         final int MIN_SIZE = 512;
         final int MAX_SIZE = 4096;
         try {
-            BufferedImage src = ImageIO.read(file);
+//            BufferedImage src = ImageIO.read(file);
+            BufferedImage src = ImgUtil.read(file);
             ThrowUtils.throwIf(src == null, ErrorCode.OPERATION_ERROR, "图片读取失败");
 
             int width = src.getWidth();
@@ -78,19 +79,21 @@ public abstract class PictureUploadTemplate<T> {
                     "图片尺寸调整后仍不符合要求，请更换图片重试"
             );
 
-            BufferedImage scaled = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
-            Graphics2D g = scaled.createGraphics();
-            try {
-                g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-                g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g.drawImage(src, 0, 0, targetWidth, targetHeight, null);
-            } finally {
-                g.dispose();
-            }
-
-            boolean success = ImageIO.write(scaled, suffix, file);
-            ThrowUtils.throwIf(!success, ErrorCode.OPERATION_ERROR, "不支持的图片格式：" + suffix);
+//            BufferedImage scaled = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
+//            Graphics2D g = scaled.createGraphics();
+//            try {
+//                g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+//                g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+//                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+//                g.drawImage(src, 0, 0, targetWidth, targetHeight, null);
+//            } finally {
+//                g.dispose();
+//            }
+            Image scaled = ImgUtil.scale(src, targetWidth, targetHeight);
+            
+//            boolean success = ImageIO.write(scaled, suffix, file);
+//            ThrowUtils.throwIf(!success, ErrorCode.OPERATION_ERROR, "不支持的图片格式：" + suffix);
+            ImgUtil.write(scaled, new File(file.getAbsolutePath()));
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
