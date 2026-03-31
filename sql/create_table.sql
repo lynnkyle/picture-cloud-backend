@@ -60,11 +60,13 @@ create table if not exists space
     total_size  bigint   default 0                 null comment '当前空间下图片的总大小',
     total_count bigint   default 0                 null comment '当前空间下的图片数量',
     user_id     bigint                             not null comment '创建用户 id',
+    space_type  int      default 0                 not null comment '空间类型(0-私有 1-团队)',
     create_time datetime default CURRENT_TIMESTAMP not null comment '创建时间',
     edit_time   datetime default CURRENT_TIMESTAMP not null comment '编辑时间',
     update_time datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     is_delete   tinyint  default 0                 not null comment '是否删除',
-    index idx_userId (user_id),        -- 提升基于用户的查询效率
-    index idx_spaceName (space_name),  -- 提升基于空间名称的查询效率
-    index idx_spaceLevel (space_level) -- 提升按空间级别查询的效率
+    index idx_user_id (user_id),        -- 提升基于用户的查询效率
+    index idx_space_name (space_name),  -- 提升基于空间名称的查询效率
+    index idx_space_level (space_level), -- 提升按空间级别查询的效率
+    index idx_space_type (space_type) -- 提升按空间级别查询的效率
 ) comment '空间' collate = utf8mb4_unicode_ci;
