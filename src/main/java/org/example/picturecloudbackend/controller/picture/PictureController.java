@@ -14,7 +14,7 @@ import org.example.picturecloudbackend.common.DeleteRequest;
 import org.example.picturecloudbackend.common.ResultUtils;
 import org.example.picturecloudbackend.constant.CacheConstant;
 import org.example.picturecloudbackend.constant.UserConstant;
-import org.example.picturecloudbackend.enums.PictureReviewStatusEnum;
+import org.example.picturecloudbackend.model.enums.PictureReviewStatusEnum;
 import org.example.picturecloudbackend.exception.ErrorCode;
 import org.example.picturecloudbackend.exception.ThrowUtils;
 import org.example.picturecloudbackend.model.dto.picture.*;

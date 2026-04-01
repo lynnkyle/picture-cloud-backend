@@ -4,13 +4,14 @@ import com.baomidou.mybatisplus.annotation.*;
 
 import java.io.Serializable;
 import java.util.Date;
+
 import lombok.Data;
 
 /**
  * 空间
  * @TableName space
  */
-@TableName(value ="space")
+@TableName(value = "space")
 @Data
 public class Space implements Serializable {
     /**
@@ -28,6 +29,11 @@ public class Space implements Serializable {
      * 空间级别：0-普通版 1-专业版 2-旗舰版
      */
     private Integer spaceLevel;
+
+    /**
+     * 空间类型(0-私有 1-团队)
+     */
+    private Integer spaceType;
 
     /**
      * 空间图片的最大总大小

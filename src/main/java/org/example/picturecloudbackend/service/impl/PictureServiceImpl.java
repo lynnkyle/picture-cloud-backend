@@ -2,8 +2,6 @@ package org.example.picturecloudbackend.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.img.ImgUtil;
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
@@ -19,7 +17,7 @@ import org.example.picturecloudbackend.api.aliyun.model.CreateImageOutPaintingTa
 import org.example.picturecloudbackend.api.aliyun.model.CreateImageOutPaintingTaskResponse;
 import org.example.picturecloudbackend.common.DeleteRequest;
 import org.example.picturecloudbackend.constant.UploadConstant;
-import org.example.picturecloudbackend.enums.PictureReviewStatusEnum;
+import org.example.picturecloudbackend.model.enums.PictureReviewStatusEnum;
 import org.example.picturecloudbackend.exception.BusinessException;
 import org.example.picturecloudbackend.exception.ErrorCode;
 import org.example.picturecloudbackend.exception.ThrowUtils;
@@ -49,13 +47,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
-import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -321,6 +314,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
      */
     @Override
     public Integer uploadPictureByBatch(PictureUploadByBatchRequest pictureUploadByBatchRequest, User loginUser) {
+        ThrowUtils.throwIf(pictureUploadByBatchRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         // 1.校验参数
         String searchText = pictureUploadByBatchRequest.getSearchText();
         Integer count = pictureUploadByBatchRequest.getCount();
@@ -380,6 +374,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
      */
     @Override
     public Boolean deletePicture(@RequestBody DeleteRequest deleteRequest, HttpServletRequest req) {
+        ThrowUtils.throwIf(deleteRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         Long id = deleteRequest.getId();
         ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR, "删除图片id为空");
         Picture pictureFromDb = getById(id);
@@ -410,6 +405,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
      */
     @Override
     public Long editPicture(@RequestBody PictureEditRequest pictureEditRequest, HttpServletRequest req) {
+        ThrowUtils.throwIf(pictureEditRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         Picture picture = new Picture();
         BeanUtil.copyProperties(pictureEditRequest, picture);
         picture.setPicTags(JSONUtil.toJsonStr(pictureEditRequest.getPicTags()));
@@ -436,6 +432,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
      */
     @Override
     public boolean doPictureReview(PictureReviewerRequest pictureReviewerRequest, User loginUser) {
+        ThrowUtils.throwIf(pictureReviewerRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         Long id = pictureReviewerRequest.getId();
         Integer reviewStatus = pictureReviewerRequest.getReviewStatus();
         PictureReviewStatusEnum pictureReviewStatusEnum = PictureReviewStatusEnum.getEnumByValue(reviewStatus);
@@ -511,6 +508,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
      */
     @Override
     public CreateImageOutPaintingTaskResponse createPictureOutPaintingTask(PictureCreateOutPaintingTaskRequest req, User loginUser) {
+        ThrowUtils.throwIf(req == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         // 获取图片信息
         Long pictureId = req.getPictureId();
         ThrowUtils.throwIf(pictureId == null, ErrorCode.PARAMS_ERROR, "图片id为空");

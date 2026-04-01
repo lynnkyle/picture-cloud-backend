@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.example.picturecloudbackend.constant.UserConstant;
-import org.example.picturecloudbackend.enums.UserRoleEnum;
+import org.example.picturecloudbackend.model.enums.UserRoleEnum;
 import org.example.picturecloudbackend.exception.ErrorCode;
 import org.example.picturecloudbackend.exception.ThrowUtils;
 import org.example.picturecloudbackend.mapper.UserMapper;

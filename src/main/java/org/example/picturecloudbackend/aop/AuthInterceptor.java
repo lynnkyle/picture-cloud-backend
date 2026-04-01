@@ -4,7 +4,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.example.picturecloudbackend.annotation.AuthCheck;
-import org.example.picturecloudbackend.enums.UserRoleEnum;
+import org.example.picturecloudbackend.model.enums.UserRoleEnum;
 import org.example.picturecloudbackend.exception.BusinessException;
 import org.example.picturecloudbackend.exception.ErrorCode;
 import org.example.picturecloudbackend.model.entity.User;

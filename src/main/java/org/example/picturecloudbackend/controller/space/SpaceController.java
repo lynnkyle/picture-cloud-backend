@@ -9,7 +9,7 @@ import org.example.picturecloudbackend.common.BaseResponse;
 import org.example.picturecloudbackend.common.DeleteRequest;
 import org.example.picturecloudbackend.common.ResultUtils;
 import org.example.picturecloudbackend.constant.UserConstant;
-import org.example.picturecloudbackend.enums.SpaceLevelEnum;
+import org.example.picturecloudbackend.model.enums.SpaceLevelEnum;
 import org.example.picturecloudbackend.exception.BusinessException;
 import org.example.picturecloudbackend.exception.ErrorCode;
 import org.example.picturecloudbackend.exception.ThrowUtils;

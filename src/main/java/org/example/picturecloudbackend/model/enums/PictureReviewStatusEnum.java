@@ -1,4 +1,4 @@
-package org.example.picturecloudbackend.enums;
+package org.example.picturecloudbackend.model.enums;
 
 import cn.hutool.core.util.ObjectUtil;
 import lombok.Getter;

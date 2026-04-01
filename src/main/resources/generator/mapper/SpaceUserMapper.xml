@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.picturecloudbackend.mapper.SpaceUserMapper">
+
+    <resultMap id="BaseResultMap" type="org.example.picturecloudbackend.model.entity.SpaceUser">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="spaceid" column="spaceId" jdbcType="BIGINT"/>
+            <result property="userid" column="userId" jdbcType="BIGINT"/>
+            <result property="spacerole" column="spaceRole" jdbcType="VARCHAR"/>
+            <result property="createtime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updatetime" column="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,spaceId,userId,
+        spaceRole,createTime,updateTime
+    </sql>
+</mapper>

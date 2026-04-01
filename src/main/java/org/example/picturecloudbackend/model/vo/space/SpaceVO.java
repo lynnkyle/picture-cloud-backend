@@ -34,6 +34,11 @@ public class SpaceVO implements Serializable {
     private Integer spaceLevel;
 
     /**
+     * 空间类型(0-私有 1-团队)
+     */
+    private Integer spaceType;
+
+    /**
      * 空间图片的最大总大小
      */
     private Long maxSize;
@@ -77,7 +82,7 @@ public class SpaceVO implements Serializable {
      * 更新时间
      */
     private Date updateTime;
-    
+
     /**
      * 封装类转对象
      * @param spaceVO
@@ -101,8 +106,8 @@ public class SpaceVO implements Serializable {
         if (space == null) {
             return null;
         }
-        SpaceVO pictureVO = new SpaceVO();
-        BeanUtil.copyProperties(space, pictureVO);
-        return pictureVO;
+        SpaceVO spaceVO = new SpaceVO();
+        BeanUtil.copyProperties(space, spaceVO);
+        return spaceVO;
     }
 }

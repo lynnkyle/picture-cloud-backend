@@ -52,14 +52,14 @@ public interface SpaceService extends IService<Space> {
     long addSpace(SpaceAddRequest spaceAddRequest, User loginUser);
 
     /**
-     * 获取用户脱敏信息列表
+     * 获取空间包装类
      * @param space
      * @return
      */
     SpaceVO getSpaceVO(Space space);
 
     /**
-     * 分页获取用户脱敏信息列表
+     * 分页获取空间包装类
      * @param spacePage
      * @return
      */
