@@ -11,6 +11,7 @@ import org.example.picturecloudbackend.model.entity.Space;
 import org.example.picturecloudbackend.model.entity.SpaceUser;
 import org.example.picturecloudbackend.model.entity.User;
 import org.example.picturecloudbackend.model.vo.space.SpaceVO;
+import org.example.picturecloudbackend.model.vo.spaceuser.SpaceUserVO;
 
 import java.util.List;
 
@@ -22,12 +23,14 @@ import java.util.List;
 public interface SpaceUserService extends IService<SpaceUser> {
     /**
      * 空间成员校验(空间修改校验)
+     *
      * @param spaceUser
      */
     void validSpaceUser(SpaceUser spaceUser, boolean add);
 
     /**
      * 获取查询空间
+     *
      * @param spaceUserQueryRequest
      * @return
      */
@@ -36,23 +39,25 @@ public interface SpaceUserService extends IService<SpaceUser> {
 
     /**
      * 创建空间成员
+     *
      * @param spaceUserAddRequest
-     * @param loginUser
      * @return
      */
-    long addSpaceUser(SpaceUserAddRequest spaceUserAddRequest, User loginUser);
+    long addSpaceUser(SpaceUserAddRequest spaceUserAddRequest);
 
     /**
      * 获取空间成员包装类
+     *
      * @param spaceUser
      * @return
      */
-    SpaceVO getSpaceUserVO(SpaceUser spaceUser);
+    SpaceUserVO getSpaceUserVO(SpaceUser spaceUser);
 
     /**
      * 分页获取空间成员包装类
+     *
      * @param spaceUserList
      * @return
      */
-    List<SpaceVO> getSpaceUserVOList(List<SpaceUser> spaceUserList);
+    List<SpaceUserVO> getSpaceUserVOList(List<SpaceUser> spaceUserList);
 }

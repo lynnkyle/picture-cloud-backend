@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.example.picturecloudbackend.model.entity.SpaceUser;
 import org.example.picturecloudbackend.model.enums.SpaceLevelEnum;
 import org.example.picturecloudbackend.exception.BusinessException;
 import org.example.picturecloudbackend.exception.ErrorCode;
@@ -21,10 +22,12 @@ import org.example.picturecloudbackend.model.dto.space.SpaceAddRequest;
 import org.example.picturecloudbackend.model.dto.space.SpaceQueryRequest;
 import org.example.picturecloudbackend.model.entity.Space;
 import org.example.picturecloudbackend.model.entity.User;
+import org.example.picturecloudbackend.model.enums.SpaceRoleEnum;
 import org.example.picturecloudbackend.model.enums.SpaceTypeEnum;
 import org.example.picturecloudbackend.model.vo.space.SpaceVO;
 import org.example.picturecloudbackend.model.vo.user.UserVO;
 import org.example.picturecloudbackend.service.SpaceService;
+import org.example.picturecloudbackend.service.SpaceUserService;
 import org.example.picturecloudbackend.service.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -41,10 +44,13 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
     @Resource
     private UserService userService;
     @Resource
+    private SpaceUserService spaceUserService;
+    @Resource
     private TransactionTemplate transactionTemplate;
 
     /**
      * 空间校验(空间修改校验)
+     *
      * @param space
      */
     @Override
@@ -65,6 +71,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
 
     /**
      * 空间写权限判断
+     *
      * @param space
      * @param loginUser
      * @return
@@ -79,6 +86,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
 
     /**
      * 填充空间
+     *
      * @param space
      */
     @Override
@@ -94,6 +102,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
 
     /**
      * 获取查询空间
+     *
      * @param spaceQueryRequest
      * @return
      */
@@ -123,6 +132,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
 
     /**
      * 创建空间
+     *
      * @param spaceAddRequest
      * @param loginUser
      * @return
@@ -161,6 +171,17 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
                 // 创建空间
                 boolean res = this.save(space);
                 ThrowUtils.throwIf(!res, ErrorCode.OPERATION_ERROR, "数据库插入空间失败");
+                // 创建空间后, 团队空间, 关联新增团队成员记录
+                if (Objects.equals(SpaceTypeEnum.TEAM, spaceTypeEnum)) {
+                    SpaceUser spaceUser = new SpaceUser();
+                    spaceUser.setSpaceId(space.getId());
+                    spaceUser.setUserId(space.getUserId());
+                    spaceUser.setSpaceRole(SpaceRoleEnum.ADMIN.getValue());
+                    spaceUser.setCreateTime(new Date());
+                    spaceUser.setUpdateTime(new Date());
+                    res = spaceUserService.save(spaceUser);
+                    ThrowUtils.throwIf(!res, ErrorCode.OPERATION_ERROR, "数据库插入团队成员失败");
+                }
                 return space.getId();
             });
             return spaceId;
@@ -169,6 +190,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
 
     /**
      * 获取用户脱敏信息列表
+     *
      * @param space
      * @return
      */
@@ -179,13 +201,14 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         if (userId != null && userId > 0) {
             User user = userService.getById(userId);
             UserVO userVO = userService.getUserVO(user);
-            spaceVO.setUser(userVO);
+            spaceVO.setUserVO(userVO);
         }
         return spaceVO;
     }
 
     /**
      * 分页获取用户脱敏信息列表
+     *
      * @param spacePage
      * @return
      */
@@ -205,7 +228,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
             Long userId = pictureVO.getUserId();
             User user = userIdToUserListMap.get(userId).get(0);
             UserVO userVO = userService.getUserVO(user);
-            pictureVO.setUser(userVO);
+            pictureVO.setUserVO(userVO);
         });
         pictureVOPage.setRecords(pictureVOList);
         return pictureVOPage;
