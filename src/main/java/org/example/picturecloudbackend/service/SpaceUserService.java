@@ -1,16 +1,10 @@
 package org.example.picturecloudbackend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
-import org.example.picturecloudbackend.model.dto.space.SpaceAddRequest;
-import org.example.picturecloudbackend.model.dto.space.SpaceQueryRequest;
 import org.example.picturecloudbackend.model.dto.spaceuser.SpaceUserAddRequest;
 import org.example.picturecloudbackend.model.dto.spaceuser.SpaceUserQueryRequest;
-import org.example.picturecloudbackend.model.entity.Space;
 import org.example.picturecloudbackend.model.entity.SpaceUser;
-import org.example.picturecloudbackend.model.entity.User;
-import org.example.picturecloudbackend.model.vo.space.SpaceVO;
 import org.example.picturecloudbackend.model.vo.spaceuser.SpaceUserVO;
 
 import java.util.List;
