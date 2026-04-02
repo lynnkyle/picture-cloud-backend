@@ -2,6 +2,7 @@ package org.example.picturecloudbackend.model.dto.spaceuser;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import lombok.Data;
 
 import java.io.Serializable;
 
@@ -10,6 +11,7 @@ import java.io.Serializable;
  * @description 空间成员编辑请求
  * @createDate 2026-03-09 20:18
  */
+@Data
 public class SpaceUserEditRequest implements Serializable {
 
     private static final long serialVersionUID = 1821514597462754008L;

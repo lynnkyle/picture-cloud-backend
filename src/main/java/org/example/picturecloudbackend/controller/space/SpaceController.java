@@ -109,7 +109,7 @@ public class SpaceController {
         Space spaceFromDb = spaceService.getById(id);
         ThrowUtils.throwIf(spaceFromDb == null, ErrorCode.NOT_FOUND_ERROR, "编辑空间不存在");
         User loginUser = userService.getLoginUser(req);
-        ThrowUtils.throwIf(spaceService.checkSpaceAuth(space, loginUser), ErrorCode.NOT_AUTH_ERROR, "用户无权限编辑空间");
+        ThrowUtils.throwIf(spaceService.checkSpaceAuth(spaceFromDb, loginUser), ErrorCode.NOT_AUTH_ERROR, "用户无权限编辑空间");
         boolean res = spaceService.updateById(space);
         ThrowUtils.throwIf(!res, ErrorCode.OPERATION_ERROR, "数据库编辑空间失败");
         return ResultUtils.success(space.getId(), "成功编辑空间");

@@ -2,9 +2,11 @@ package org.example.picturecloudbackend.model.dto.spaceuser;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import lombok.Data;
 
 import java.io.Serializable;
 
+@Data
 public class SpaceUserQueryRequest implements Serializable {
 
     private static final long serialVersionUID = -3578947561778574108L;

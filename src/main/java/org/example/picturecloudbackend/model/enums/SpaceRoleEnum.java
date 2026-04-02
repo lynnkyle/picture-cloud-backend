@@ -1,9 +1,11 @@
 package org.example.picturecloudbackend.model.enums;
 
 import cn.hutool.core.util.ObjUtil;
+import lombok.Getter;
 
 import java.util.Objects;
 
+@Getter
 public enum SpaceRoleEnum {
     VIEWER("浏览者", "viewer"), EDITOR("编辑者", "editor"), ADMIN("管理员", "admin");
     private final String text;
@@ -16,6 +18,7 @@ public enum SpaceRoleEnum {
 
     /**
      * 根据value获取枚举
+     *
      * @param value
      * @return
      */

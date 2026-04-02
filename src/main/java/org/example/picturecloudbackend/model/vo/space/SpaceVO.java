@@ -66,7 +66,7 @@ public class SpaceVO implements Serializable {
     /**
      * 创建用户
      */
-    private UserVO user;
+    private UserVO userVO;
 
     /**
      * 创建时间
@@ -85,6 +85,7 @@ public class SpaceVO implements Serializable {
 
     /**
      * 封装类转对象
+     *
      * @param spaceVO
      * @return
      */
@@ -99,6 +100,7 @@ public class SpaceVO implements Serializable {
 
     /**
      * 对象转封装类
+     *
      * @param space
      * @return
      */
