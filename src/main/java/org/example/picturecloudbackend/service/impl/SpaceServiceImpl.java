@@ -29,6 +29,7 @@ import org.example.picturecloudbackend.model.vo.user.UserVO;
 import org.example.picturecloudbackend.service.SpaceService;
 import org.example.picturecloudbackend.service.SpaceUserService;
 import org.example.picturecloudbackend.service.UserService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -58,7 +59,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         ThrowUtils.throwIf(space == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         String spaceName = space.getSpaceName();
         SpaceLevelEnum spaceLevelEnum = SpaceLevelEnum.getSpaceLevelEnumByValue(space.getSpaceLevel());
-        SpaceTypeEnum spaceTypeEnum = SpaceTypeEnum.getSpaceLevelEnumByValue(space.getSpaceType());
+        SpaceTypeEnum spaceTypeEnum = SpaceTypeEnum.getSpaceTypeEnumByValue(space.getSpaceType());
         // 1.创建时校验
         if (add) {
             ThrowUtils.throwIf(StrUtil.isBlank(spaceName), ErrorCode.PARAMS_ERROR, "空间名称不可以为空");
@@ -163,7 +164,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         synchronized (lock) {
             Long spaceId = transactionTemplate.execute(status -> {
                 // 判断是否已有空间
-                SpaceTypeEnum spaceTypeEnum = SpaceTypeEnum.getSpaceLevelEnumByValue(space.getSpaceType());
+                SpaceTypeEnum spaceTypeEnum = SpaceTypeEnum.getSpaceTypeEnumByValue(space.getSpaceType());
                 boolean exists = this.lambdaQuery().eq(Space::getUserId, userId).eq(Space::getSpaceType, spaceTypeEnum.getValue()).exists();
                 // 已有空间不能创建
                 ThrowUtils.throwIf(exists && Objects.equals(SpaceTypeEnum.PRIVATE, spaceTypeEnum), ErrorCode.OPERATION_ERROR, "一个用户只能创建一个私有空间");

@@ -9,6 +9,7 @@ import org.example.picturecloudbackend.common.BaseResponse;
 import org.example.picturecloudbackend.common.DeleteRequest;
 import org.example.picturecloudbackend.common.ResultUtils;
 import org.example.picturecloudbackend.constant.UserConstant;
+import org.example.picturecloudbackend.manager.auth.SpaceUserAuthManage;
 import org.example.picturecloudbackend.model.enums.SpaceLevelEnum;
 import org.example.picturecloudbackend.exception.BusinessException;
 import org.example.picturecloudbackend.exception.ErrorCode;
@@ -23,6 +24,7 @@ import org.example.picturecloudbackend.model.vo.space.SpaceLevel;
 import org.example.picturecloudbackend.model.vo.space.SpaceVO;
 import org.example.picturecloudbackend.service.SpaceService;
 import org.example.picturecloudbackend.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -35,7 +37,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/space")
 @RestController
 public class SpaceController {
-
+    @Resource
+    private SpaceUserAuthManage spaceUserAuthManage;
     @Resource
     private UserService userService;
     @Resource
@@ -43,12 +46,7 @@ public class SpaceController {
 
     @GetMapping("/list/level")
     public BaseResponse<List<SpaceLevel>> listSpaceLevel() {
-        List<SpaceLevel> spaceLevelList = Arrays.stream(SpaceLevelEnum.values()).map(
-                spaceLevelEnum -> new SpaceLevel(spaceLevelEnum.getValue(),
-                        spaceLevelEnum.getText(),
-                        spaceLevelEnum.getMaxCount(),
-                        spaceLevelEnum.getMaxSize())
-        ).collect(Collectors.toList());
+        List<SpaceLevel> spaceLevelList = Arrays.stream(SpaceLevelEnum.values()).map(spaceLevelEnum -> new SpaceLevel(spaceLevelEnum.getValue(), spaceLevelEnum.getText(), spaceLevelEnum.getMaxCount(), spaceLevelEnum.getMaxSize())).collect(Collectors.toList());
         return ResultUtils.success(spaceLevelList, "成功获取空间级别列表");
     }
 
@@ -125,11 +123,15 @@ public class SpaceController {
     }
 
     @GetMapping("/get/vo")
-    public BaseResponse<SpaceVO> getSpaceVOById(Long id) {
+    public BaseResponse<SpaceVO> getSpaceVOById(Long id, HttpServletRequest req) {
         ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         Space space = spaceService.getById(id);
-        SpaceVO spaceVO = spaceService.getSpaceVO(space);
         ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "获取空间不存在");
+        SpaceVO spaceVO = spaceService.getSpaceVO(space);
+        User loginUser = userService.getLoginUser(req);
+        // 设置空间权限列表
+        List<String> permissionList = spaceUserAuthManage.getPermissionList(space, loginUser);
+        spaceVO.setPermissionList(permissionList);
         return ResultUtils.success(spaceVO, "成功获取空间");
     }
 

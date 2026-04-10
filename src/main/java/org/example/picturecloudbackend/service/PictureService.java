@@ -34,6 +34,7 @@ public interface PictureService extends IService<Picture> {
      * @param loginUser
      * @param picture
      */
+    @Deprecated
     void checkPictureAuth(User loginUser, Picture picture);
 
     /**
