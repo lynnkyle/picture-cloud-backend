@@ -20,7 +20,7 @@ public enum SpaceTypeEnum {
      * @param value
      * @return
      */
-    public static SpaceTypeEnum getSpaceLevelEnumByValue(Integer value) {
+    public static SpaceTypeEnum getSpaceTypeEnumByValue(Integer value) {
         if (ObjUtil.isAllEmpty(value)) {
             return null;
         }

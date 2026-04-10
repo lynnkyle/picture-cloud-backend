@@ -1,10 +1,61 @@
 services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql-data/sql:/docker-entrypoint-initdb.d
+      - ./mysql-data/mysql:/var/lib/mysql
   redis:
-    image: redislabs/rebloom:2.8.0
+    image: redislabs/rebloom:2.8.0  # 这个镜像自带布隆过滤器
     container_name: redis
     ports:
       - "6379:6379"
     volumes:
-      - ./redis/data:/data
-      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./redis-data/data:/data
+      - ./redis-data/redis.conf:/usr/local/etc/redis/redis.conf
     command: redis-server /usr/local/etc/redis/redis.conf --loadmodule /usr/lib/redis/modules/redisbloom.so
+  nacos:
+    image: nacos/nacos-server:v2.2.0-slim
+    container_name: nacos
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+    volumes:
+      - ./nacos-data:/home/nacos/data
+    environment:
+      - MODE=standalone # 单节点模式启动
+      - PREFER_HOST_MODE=hostname # 支持 hostname
+      - TZ=Asia/Shanghai # 控制时区
+  elasticsearch:
+    container_name: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.29
+    environment:
+      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+      - "TZ=Asia/Shanghai"
+      - "discovery.type=single-node"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - ./elasticsearch-data/data:/usr/share/elasticsearch/data
+      - ./elasticsearch-data/plugins:/usr/share/elasticsearch/plugins
+    command: >
+      bash -c "chown -R 1000:1000 /usr/share/elasticsearch/data && chmod -R 775 /usr/share/elasticsearch/data && /usr/local/bin/docker-entrypoint.sh eswrapper"
+  rabbitmq:
+    image: rabbitmq:3.12.6-management # 支持管理面板的消息队列
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmq
+      RABBITMQ_DEFAULT_PASS: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672" # RabbitMQ Dashboard 端口
+    volumes:
+      - ./rabbitmq-data:/var/lib/rabbitmq # 持久化
+networks:
+  backend_default:
+    driver: bridge

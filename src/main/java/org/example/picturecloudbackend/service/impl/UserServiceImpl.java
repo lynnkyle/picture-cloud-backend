@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.example.picturecloudbackend.constant.UserConstant;
+import org.example.picturecloudbackend.manager.auth.StpKit;
 import org.example.picturecloudbackend.model.enums.UserRoleEnum;
 import org.example.picturecloudbackend.exception.ErrorCode;
 import org.example.picturecloudbackend.exception.ThrowUtils;
@@ -224,7 +225,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User userFromDb = this.getOne(queryWrapper);
         ThrowUtils.throwIf(userFromDb == null || !encryptPassword.equals(userFromDb.getUserPassword()), ErrorCode.PARAMS_ERROR, "用户账户或密码错误");
         // 4.保存用户登录态
+        // 4.1 保存用户登录态到Session
         req.getSession().setAttribute(UserConstant.USER_LOGIN_STATE, userFromDb);
+        // 4.2 保存用户登录态到Sa-Token
+        StpKit.SPACE.login(userFromDb.getId());
+        StpKit.SPACE.getSession().set(UserConstant.USER_LOGIN_STATE, userFromDb);
         return getLoginUserVO(userFromDb);
     }
 

@@ -12,6 +12,7 @@ import org.example.picturecloudbackend.model.entity.Space;
 import org.example.picturecloudbackend.model.vo.user.UserVO;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -67,6 +68,11 @@ public class SpaceVO implements Serializable {
      * 创建用户
      */
     private UserVO userVO;
+
+    /**
+     * 权限列表
+     */
+    private List<String> permissionList = new ArrayList<>();
 
     /**
      * 创建时间

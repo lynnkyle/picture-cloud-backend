@@ -100,7 +100,7 @@ public class PictureQueryRequest extends PageRequest implements Serializable {
     /**
      * 审核时间
      */
-    private Date ReviewTime;
+    private Date reviewTime;
 
     /**
      * 开始编辑时间

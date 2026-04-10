@@ -106,6 +106,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
      * @param loginUser
      * @param picture
      */
+    @Deprecated
     @Override
     public void checkPictureAuth(User loginUser, Picture picture) {
         Long spaceId = picture.getSpaceId();
@@ -379,9 +380,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR, "删除图片id为空");
         Picture pictureFromDb = getById(id);
         ThrowUtils.throwIf(pictureFromDb == null, ErrorCode.NOT_FOUND_ERROR, "删除图片不存在");
-        User loginUser = userService.getLoginUser(req);
         // 校验权限
-        checkPictureAuth(loginUser, pictureFromDb);
+//        User loginUser = userService.getLoginUser(req);
+//        checkPictureAuth(loginUser, pictureFromDb);
         transactionTemplate.execute(status -> {
             // 删除图片记录
             boolean pictureRes = removeById(id);
@@ -414,9 +415,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         Long id = pictureEditRequest.getId();
         Picture pictureFromDb = getById(id);
         ThrowUtils.throwIf(pictureFromDb == null, ErrorCode.NOT_FOUND_ERROR, "编辑图片不存在");
-        User loginUser = userService.getLoginUser(req);
         // 权限校验
-        checkPictureAuth(loginUser, pictureFromDb);
+        User loginUser = userService.getLoginUser(req);
+//        checkPictureAuth(loginUser, pictureFromDb);
         fillReviewParams(picture, loginUser);
         boolean res = updateById(picture);
         ThrowUtils.throwIf(!res, ErrorCode.OPERATION_ERROR, "数据库编辑图片失败");
@@ -515,7 +516,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture> impl
         Picture picture = this.getById(pictureId);
         ThrowUtils.throwIf(picture == null, ErrorCode.PARAMS_ERROR, "图片不存在");
         // 权限校验
-        checkPictureAuth(loginUser, picture);
+//        checkPictureAuth(loginUser, picture);
         // 图像画面扩展任务
         CreateImageOutPaintingTaskRequest createImageOutPaintingTaskRequest = new CreateImageOutPaintingTaskRequest();
         CreateImageOutPaintingTaskRequest.Input input = new CreateImageOutPaintingTaskRequest.Input();

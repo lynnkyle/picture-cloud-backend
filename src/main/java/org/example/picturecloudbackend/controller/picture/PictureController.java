@@ -14,6 +14,12 @@ import org.example.picturecloudbackend.common.DeleteRequest;
 import org.example.picturecloudbackend.common.ResultUtils;
 import org.example.picturecloudbackend.constant.CacheConstant;
 import org.example.picturecloudbackend.constant.UserConstant;
+import org.example.picturecloudbackend.manager.auth.SpaceUserAuthManage;
+import org.example.picturecloudbackend.manager.auth.StpKit;
+import org.example.picturecloudbackend.manager.auth.annotation.SaSpaceCheckPermission;
+import org.example.picturecloudbackend.manager.auth.model.SpaceUserPermission;
+import org.example.picturecloudbackend.manager.auth.model.constant.SpaceUserPermissionConstant;
+import org.example.picturecloudbackend.manager.auth.model.enums.SpaceUserPermissionEnum;
 import org.example.picturecloudbackend.model.enums.PictureReviewStatusEnum;
 import org.example.picturecloudbackend.exception.ErrorCode;
 import org.example.picturecloudbackend.exception.ThrowUtils;
@@ -54,6 +60,8 @@ public class PictureController {
     private PictureCache pictureCache;
     @Autowired
     private AlibabaCloudApi alibabaCloudApi;
+    @Autowired
+    private SpaceUserAuthManage spaceUserAuthManage;
 
     @GetMapping("/tag_category")
     public BaseResponse<PictureTagCategory> listPictureCategoryTag() {
@@ -66,6 +74,7 @@ public class PictureController {
     }
 
     @PostMapping("/upload")
+    @SaSpaceCheckPermission(value = {SpaceUserPermissionConstant.PICTURE_UPLOAD})
     public BaseResponse<PictureVO> uploadPicture(PictureUploadRequest pictureUploadRequest, @RequestPart("file") MultipartFile multipartFile, HttpServletRequest request) {
         ThrowUtils.throwIf(pictureUploadRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         User loginUser = userService.getLoginUser(request);
@@ -74,6 +83,7 @@ public class PictureController {
     }
 
     @PostMapping("/upload/url")
+    @SaSpaceCheckPermission(value = {SpaceUserPermissionConstant.PICTURE_UPLOAD})
     public BaseResponse<PictureVO> uploadPictureByUrl(@RequestBody PictureUploadRequest pictureUploadRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(pictureUploadRequest == null, ErrorCode.PARAMS_ERROR, "文件不能为空");
         String fileUrl = pictureUploadRequest.getFileUrl();
@@ -92,6 +102,7 @@ public class PictureController {
     }
 
     @PostMapping("/delete")
+    @SaSpaceCheckPermission(value = {SpaceUserPermissionConstant.PICTURE_DELETE})
     public BaseResponse<Boolean> deletePicture(@RequestBody DeleteRequest deleteRequest, HttpServletRequest req) {
         ThrowUtils.throwIf(deleteRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         Boolean res = pictureService.deletePicture(deleteRequest, req);
@@ -125,6 +136,7 @@ public class PictureController {
     }
 
     @PostMapping("/edit")
+    @SaSpaceCheckPermission(value = {SpaceUserPermissionConstant.PICTURE_EDIT})
     public BaseResponse<Long> editPicture(@RequestBody PictureEditRequest pictureEditRequest, HttpServletRequest req) {
         ThrowUtils.throwIf(pictureEditRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         Long pictureId = pictureService.editPicture(pictureEditRequest, req);
@@ -154,12 +166,19 @@ public class PictureController {
         ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         Picture picture = pictureService.getById(id);
         ThrowUtils.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR, "获取图片不存在");
-        Long spaceId = picture.getSpaceId();
-        if (spaceId != null) {
-            User loginUser = userService.getLoginUser(req);
-            pictureService.checkPictureAuth(loginUser, picture);
-        }
         PictureVO pictureVO = pictureService.getPictureVO(picture);
+        Long spaceId = picture.getSpaceId();
+        Space space = null;
+        if (spaceId != null) { // TODO 私有图库
+//            User loginUser = userService.getLoginUser(req);
+//            pictureService.checkPictureAuth(loginUser, picture);
+            boolean hasPermission = StpKit.SPACE.hasPermission(SpaceUserPermissionConstant.PICTURE_VIEW);
+            ThrowUtils.throwIf(!hasPermission, ErrorCode.NOT_AUTH_ERROR, "用户无权限操作图片");
+            space = spaceService.getById(spaceId);
+        }
+        User loginUser = userService.getLoginUser(req);
+        List<String> permissionList = spaceUserAuthManage.getPermissionList(space, loginUser);
+        pictureVO.setPermissionList(permissionList);
         return ResultUtils.success(pictureVO, "成功获取图片");
     }
 
@@ -234,17 +253,23 @@ public class PictureController {
     @PostMapping("/list/page/vo")
     public BaseResponse<IPage<PictureVO>> listPictureVOByPage(@RequestBody PictureQueryRequest pictureQueryRequest, HttpServletRequest req) {
         ThrowUtils.throwIf(pictureQueryRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
-        int current = pictureQueryRequest.getCurrent();
         int size = pictureQueryRequest.getPageSize();
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR, "获取图片页面大小过大");
-        // 普通用户只能看到审核通过数据
-        pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+        Integer picStatus = pictureQueryRequest.getPicStatus();
+        if (picStatus == null) { // TODO 0-公开 1-私有
+            // 普通用户只能看到审核通过数据
+            pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+        } else {
+            boolean hasPermission = StpKit.SPACE.hasPermission(SpaceUserPermissionConstant.PICTURE_VIEW);
+            ThrowUtils.throwIf(!hasPermission, ErrorCode.NOT_AUTH_ERROR, "用户无权限操作私有空间");
+        }
         // 查询缓存
         IPage<PictureVO> pictureVOPage = picturePageCache.listPictureVOByPage(pictureQueryRequest);
         return ResultUtils.success(pictureVOPage, "成功获取图片列表");
     }
 
     @PostMapping("/out_painting/create_task")
+    @SaSpaceCheckPermission(value = {SpaceUserPermissionConstant.PICTURE_EDIT})
     public BaseResponse<CreateImageOutPaintingTaskResponse> createPictureOutPaintingTask(@RequestBody PictureCreateOutPaintingTaskRequest pictureCreateOutPaintingTaskRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(pictureCreateOutPaintingTaskRequest == null, ErrorCode.PARAMS_ERROR, "请求参数为空");
         User loginUser = userService.getLoginUser(request);
